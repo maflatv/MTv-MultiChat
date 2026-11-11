@@ -1,0 +1,15 @@
+name = "mtv-multichat-kick"
+main = "src/index.js"
+compatibility_date = "2025-06-01"
+
+[[durable_objects.bindings]]
+name = "SALAS"
+class_name = "Sala"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["Sala"]
+
+# Secretos (no van en este archivo):
+#   npx wrangler secret put KICK_CLIENT_ID
+#   npx wrangler secret put KICK_CLIENT_SECRET

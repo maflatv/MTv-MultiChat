@@ -1,0 +1,34 @@
+/* Aspecto de un mensaje: común al overlay y al dock. */
+.msg { position: relative; }
+.linea { line-height: var(--interlineado, 1.35); overflow-wrap: anywhere; }
+.linea > * { vertical-align: middle; }
+/* Logotipo de la plataforma: 'color' (su color), 'insignia' (logo sobre su color) o 'blanco'. */
+.plat { display: inline-grid; place-items: center; width: 1.15em; height: 1.15em; margin-right: .35em; box-sizing: border-box; flex: none; }
+.plat svg { width: 100%; height: 100%; display: block; }
+.plat-color { color: var(--marca); }
+.plat-color.plat-tiktok { color: #fff; filter: drop-shadow(-.06em -.06em 0 #25F4EE) drop-shadow(.06em .06em 0 #FE2C55); }
+.plat-insignia { background: var(--marca); color: #fff; border-radius: .28em; padding: .17em; }
+.plat-insignia.plat-kick { color: #0b0e0f; }
+.plat-insignia.plat-tiktok { background: #000; filter: drop-shadow(-.05em -.05em 0 #25F4EE) drop-shadow(.05em .05em 0 #FE2C55); }
+.plat-blanco { color: #fff; }
+.avatar { width: 1.5em; height: 1.5em; border-radius: 50%; object-fit: cover; margin-right: .35em; }
+.insignia { display: inline-block; height: 1.1em; width: 1.1em; object-fit: contain; margin-right: .22em; vertical-align: middle; flex: none; }
+.nombre { font-weight: 800; color: #c9b8ff; margin-right: .4em; }
+.texto { color: inherit; }
+.emote { height: 1.6em; vertical-align: middle; margin: -.25em .05em; }
+.apilado { position: relative; display: inline-block; vertical-align: middle; }
+.apilado .emote.encima { position: absolute; left: 50%; bottom: 0; transform: translateX(-50%); margin: 0; pointer-events: none; }
+.sticker { display: block; height: 3.5em; margin-top: .25em; }
+
+.evento { display: flex; gap: .5em; align-items: baseline; margin-bottom: .25em; flex-wrap: wrap; }
+.evento-tipo {
+  font: 800 .6em/1 system-ui, sans-serif; text-transform: uppercase; letter-spacing: .08em;
+  padding: .35em .5em; border-radius: .3em; background: var(--acento, #6b4cd6); color: #fff;
+}
+.evento-titulo { font-weight: 700; }
+.tipo-donacion { --acento: #e0a100; }
+.tipo-suscripcion { --acento: #6b4cd6; }
+.tipo-regalo_subs { --acento: #c03ad6; }
+.tipo-raid { --acento: #e3533a; }
+.tipo-follow { --acento: #1f8fe0; }
+.tipo-aviso { --acento: #5a6470; }

@@ -1,0 +1,26 @@
+MTv MultiChat, por Mafla
+https://github.com/maflatv/MTv-MultiChat
+
+Chat unificado de Twitch, YouTube, TikTok y Kick para directos, con dock, overlay de chat y alertas para OBS.
+Unified Twitch, YouTube, TikTok and Kick chat for live streams, with a dock, chat overlay and alerts for OBS.
+
+ANTES DE EMPEZAR / BEFORE YOU START
+Pon MTv-MultiChat.exe en su propia carpeta: tus ajustes se guardarán junto a él (carpeta userdata).
+Put MTv-MultiChat.exe in its own folder: your settings are saved next to it (userdata folder).
+El portable no se actualiza solo. Si prefieres que lo haga, usa el instalador MTv-MultiChat-Setup-<versión>.exe.
+The portable version does not update itself. If you want it to, use the MTv-MultiChat-Setup-<version>.exe installer.
+
+OBS
+Chat: Fuente -> Navegador -> http://localhost:7390/overlay (450 x 800)
+Alertas: Fuente -> Navegador -> http://localhost:7390/alertas (1920 x 1080, "Controlar audio mediante OBS")
+MTv MultiChat debe estar abierto mientras transmites. / MTv MultiChat must be open while you stream.
+
+AVISO DE WINDOWS / WINDOWS WARNING
+El programa no tiene firma digital, así que Windows puede mostrar un aviso.
+Para continuar, pulsa "Más información" y luego "Ejecutar de todas formas".
+The program is not digitally signed, so Windows may show a warning: click "More info" and then "Run anyway".
+
+LICENCIAS / LICENSES
+LICENSE.txt: MTv MultiChat (MIT)
+LICENSE-Electron.txt y LICENSES-Chromium.html: Electron y Chromium, incluidos en el ejecutable
+Sonidos de alerta: Kenney (CC0). Logotipos: Simple Icons (CC0).

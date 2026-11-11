@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>MTv MultiChat</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="/mensajes.css">
+<link rel="stylesheet" href="/dock.css">
+<link rel="icon" href="/favicon.ico">
+</head>
+<body>
+<header>
+  <h1><img src="/marca/mtv-logo-transparente-para-fondo-oscuro.svg" alt="MTv MultiChat" class="logo"></h1>
+  <div class="cabecera-der">
+    <div id="servidor" class="chip">Conectando…</div>
+    <button id="aviso-actualizacion" class="principal" hidden></button>
+    <a id="boton-kofi" class="boton kofi con-icono" href="https://ko-fi.com/maflatv" target="_blank" rel="noopener" title="Apoya el proyecto en Ko-fi"><i class="ico ico-marca-kofi"></i><span>Apoyar</span></a>
+    <button id="boton-ayuda" class="con-icono" title="Ayuda"><b>?</b></button>
+    <button id="boton-acerca" class="con-icono" title="Acerca de MTv MultiChat"><b>i</b></button>
+    <button id="ajustes-dock" class="con-icono" title="Vista del dock"><i class="ico ico-ajustes"></i></button>
+  </div>
+  <div id="panel-dock" hidden></div>
+</header>
+
+<main>
+  <aside id="cuentas">
+    <h2>Plataformas</h2>
+    <div id="lista-cuentas"></div>
+    <h2>Probar</h2>
+    <p class="ayuda">Envía mensajes de prueba al dock y al overlay.</p>
+    <div class="botones-prueba">
+      <button data-prueba="mensaje">Mensaje</button>
+      <button data-prueba="donacion">Donación</button>
+      <button data-prueba="suscripcion">Suscripción</button>
+      <button data-prueba="regalo_subs">Subs regalados</button>
+      <button data-prueba="raid">Raid</button>
+      <button data-prueba="follow">Follow</button>
+    </div>
+    <div class="prueba-auto">
+      <label class="c-si"><input type="checkbox" id="auto-activo"> <span>Envío automático</span></label>
+      <label class="auto-fila">Mensajes cada <input type="number" id="auto-mensajes" min="0.5" max="120" step="0.5" value="3"> s</label>
+      <label class="auto-fila">Eventos cada <input type="number" id="auto-eventos" min="0" max="600" step="1" value="15"> s</label>
+      <p class="ayuda">Eventos: follow, suscripción, donación, subs regalados y raid, por turnos. 0 = solo mensajes.</p>
+    </div>
+  </aside>
+
+  <section id="centro">
+    <div id="filtros">
+      <button class="filtro activo" data-filtro="todo">Todo</button>
+      <button class="filtro" data-filtro="eventos">Eventos</button>
+      <span class="sep"></span>
+      <span id="filtros-plataforma"></span>
+      <input id="buscar" type="search" placeholder="Buscar…">
+    </div>
+    <div id="feed" aria-live="polite"></div>
+    <button id="nuevos" hidden>Mensajes nuevos ↓</button>
+    <div id="vacio">
+      <p>Aún no hay mensajes.</p>
+      <p class="ayuda">Activa una plataforma a la izquierda o envía un mensaje de prueba.</p>
+    </div>
+  </section>
+
+  <aside id="editor">
+    <h2>Overlays para OBS</h2>
+    <div class="pestanas">
+      <button class="activo" data-pestana="chat">Chat</button>
+      <button data-pestana="alertas">Alertas</button>
+    </div>
+    <div class="url">
+      <code id="url-overlay"></code>
+      <button id="copiar" class="con-icono"><i class="ico ico-copiar"></i><span>Copiar</span></button>
+    </div>
+    <p class="ayuda" id="ayuda-obs"></p>
+    <iframe id="vista" title="Vista previa del overlay"></iframe>
+    <form id="form-overlay"></form>
+  </aside>
+</main>
+
+<dialog id="dialogo-acerca" class="dialogo">
+  <button class="cerrar" data-cerrar title="Cerrar">✕</button>
+  <img src="/marca/mtv-logo-transparente-para-fondo-oscuro.svg" alt="MTv MultiChat" class="logo-grande">
+  <p class="version">Versión <span id="version"></span></p>
+  <p>Chat unificado de Twitch, YouTube, TikTok y Kick para directos, con dock, overlay de chat y alertas para OBS. Gratuito y de código abierto.</p>
+  <p>Creado por <b>Mafla</b>.</p>
+  <h3>Sígueme</h3>
+  <div id="redes" class="redes"></div>
+  <div class="kofi-caja">
+    <p>MTv MultiChat es gratis. Si te resulta útil, puedes apoyarlo:</p>
+    <a class="boton kofi grande con-icono" href="https://ko-fi.com/maflatv" target="_blank" rel="noopener"><i class="ico ico-marca-kofi"></i><span>Invítame a un café en Ko-fi</span></a>
+  </div>
+  <div id="caja-actualizacion" hidden>
+    <h3>Actualizaciones</h3>
+    <p id="texto-actualizacion"></p>
+    <button id="boton-actualizacion"></button>
+  </div>
+  <h3>Créditos</h3>
+  <ul class="creditos">
+    <li>Sonidos de alerta: Kenney (CC0)</li>
+    <li>Logotipos de las plataformas y redes: Simple Icons (CC0)</li>
+    <li>Emotes: 7TV, BetterTTV y FrankerFaceZ</li>
+    <li>Licencia: MIT · <a href="https://github.com/maflatv/MTv-MultiChat" target="_blank" rel="noopener">Código en GitHub</a></li>
+  </ul>
+</dialog>
+
+<dialog id="dialogo-ayuda" class="dialogo">
+  <button class="cerrar" data-cerrar title="Cerrar">✕</button>
+  <h2>Ayuda</h2>
+  <h3>1. Conecta tus plataformas</h3>
+  <ul>
+    <li><b>Twitch</b>: escribe tu canal y pulsa Conectar. Para follows, canjes, avatares e insignias oficiales, inicia sesión (te dará un código para twitch.tv/activate).</li>
+    <li><b>YouTube</b>: escribe tu canal (@nombre). Se conecta solo cada vez que empieces un directo.</li>
+    <li><b>TikTok</b>: escribe tu usuario. Solo funciona en la app de escritorio y se conecta solo al empezar el directo.</li>
+    <li><b>Kick</b>: "Con mi cuenta" (más eventos) o "Sin cuenta" (solo app de escritorio).</li>
+  </ul>
+  <h3>2. Añade los overlays a OBS</h3>
+  <ul>
+    <li>En el editor (derecha) elige la pestaña <b>Chat</b> o <b>Alertas</b> y pulsa <b>Copiar</b>.</li>
+    <li>En OBS: Fuente → <b>Navegador</b> → pega la URL. Chat: 450 × 800. Alertas: 1920 × 1080 y activa "Controlar audio mediante OBS".</li>
+  </ul>
+  <h3>3. Personaliza</h3>
+  <ul>
+    <li>Prueba los <b>estilos rápidos</b> y luego ajusta colores, texto y disposición. La vista previa cambia al momento.</li>
+    <li>En <b>Alertas</b> puedes subir tus propios sonidos, imágenes, GIF o vídeos, y elegir uno distinto por tipo de alerta.</li>
+    <li>Usa <b>Probar</b> (izquierda) o el <b>envío automático</b> para ver cómo queda sin estar en directo.</li>
+  </ul>
+  <h3>4. En directo</h3>
+  <ul>
+    <li>Pasa el ratón por un mensaje: <b>destacar</b> lo muestra en grande en el overlay; <b>quitar</b> lo oculta del overlay.</li>
+    <li>Filtra por plataforma o por eventos y busca en el chat desde la barra superior.</li>
+    <li>El botón <b>Aa</b> cambia el tamaño de letra del dock; en la app de escritorio también la transparencia y "siempre encima".</li>
+  </ul>
+  <h3>Problemas frecuentes</h3>
+  <ul>
+    <li><b>YouTube o TikTok "Esperando directo"</b>: es normal si no estás en directo; se conectará solo.</li>
+    <li><b>TikTok no recibe mensajes</b>: algunos directos piden sesión; pulsa "Iniciar sesión en TikTok".</li>
+    <li><b>El overlay no se ve en OBS</b>: comprueba que MTv MultiChat está abierto y que la URL es la que copiaste.</li>
+    <li><b>Las alertas no suenan</b>: en OBS, activa "Controlar audio mediante OBS" en la fuente y sube su volumen en el mezclador.</li>
+  </ul>
+</dialog>
+
+<script src="/comun.js"></script>
+<script src="/dock.js"></script>
+</body>
+</html>

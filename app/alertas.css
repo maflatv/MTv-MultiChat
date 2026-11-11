@@ -1,0 +1,95 @@
+/* Overlay de alertas. Variables puestas por alertas.js según la configuración. */
+:root { --tamano: 34px; --acento: #a56bff; --fuente: "Segoe UI", system-ui, sans-serif; --duracion: 7s; }
+html, body { margin: 0; height: 100%; background: transparent; overflow: hidden; }
+body { font: 700 var(--tamano)/1.2 var(--fuente); color: #fff; }
+#escena { position: absolute; inset: 0; display: flex; justify-content: center; padding: 4%; box-sizing: border-box; }
+.pos-arriba #escena { align-items: flex-start; }
+.pos-centro #escena { align-items: center; }
+.pos-abajo #escena { align-items: flex-end; }
+
+.alerta { width: min(92%, 22em); }
+
+/* Animaciones de entrada */
+.entrada-rebote .alerta { animation: e-rebote .7s cubic-bezier(.2, 1.3, .4, 1) both; }
+.entrada-aparecer .alerta { animation: e-aparecer .6s ease-out both; }
+.entrada-desde-abajo .alerta { animation: e-abajo .6s cubic-bezier(.2, .9, .3, 1) both; }
+.entrada-desde-arriba .alerta { animation: e-arriba .6s cubic-bezier(.2, .9, .3, 1) both; }
+.entrada-desde-izquierda .alerta { animation: e-izquierda .6s cubic-bezier(.2, .9, .3, 1) both; }
+.entrada-desde-derecha .alerta { animation: e-derecha .6s cubic-bezier(.2, .9, .3, 1) both; }
+.entrada-zoom .alerta { animation: e-zoom .55s cubic-bezier(.2, 1.4, .4, 1) both; }
+.entrada-girar .alerta { animation: e-girar .8s cubic-bezier(.2, 1.1, .4, 1) both; }
+.entrada-sacudir .alerta { animation: e-aparecer .2s ease-out both, e-sacudir .6s .2s ease-in-out; }
+@keyframes e-rebote { from { opacity: 0; transform: translateY(40px) scale(.85); } }
+@keyframes e-aparecer { from { opacity: 0; } }
+@keyframes e-abajo { from { opacity: 0; transform: translateY(100vh); } }
+@keyframes e-arriba { from { opacity: 0; transform: translateY(-100vh); } }
+@keyframes e-izquierda { from { opacity: 0; transform: translateX(-100vw); } }
+@keyframes e-derecha { from { opacity: 0; transform: translateX(100vw); } }
+@keyframes e-zoom { from { opacity: 0; transform: scale(.2); } }
+@keyframes e-girar { from { opacity: 0; transform: rotate(-200deg) scale(.3); } }
+@keyframes e-sacudir { 20%, 60% { transform: translateX(-.25em) rotate(-2deg); } 40%, 80% { transform: translateX(.25em) rotate(2deg); } }
+
+/* Animaciones de salida */
+.salida-desvanecer .alerta.saliendo { animation: s-desvanecer .6s ease-in forwards; }
+.salida-hacia-arriba .alerta.saliendo { animation: s-arriba .6s ease-in forwards; }
+.salida-hacia-abajo .alerta.saliendo { animation: s-abajo .6s ease-in forwards; }
+.salida-zoom .alerta.saliendo { animation: s-zoom .5s ease-in forwards; }
+.salida-ninguna .alerta.saliendo { display: none; }
+@keyframes s-desvanecer { to { opacity: 0; transform: scale(.97); } }
+@keyframes s-arriba { to { opacity: 0; transform: translateY(-60px); } }
+@keyframes s-abajo { to { opacity: 0; transform: translateY(60px); } }
+@keyframes s-zoom { to { opacity: 0; transform: scale(1.4); } }
+
+.cabecera { display: flex; align-items: center; gap: .4em; font-size: .5em; text-transform: uppercase; letter-spacing: .14em; }
+.cabecera .plat { font-size: 1.1em; }
+.cuerpo { display: flex; align-items: center; gap: .6em; margin-top: .35em; }
+.imagen { flex: none; width: var(--tam-imagen, 2.6em); height: var(--tam-imagen, 2.6em); object-fit: cover; }
+.imagen.propia { object-fit: contain; height: auto; max-height: calc(var(--tam-imagen, 2.6em) * 1.6); }
+
+/* Dónde va el texto respecto a la imagen o animación */
+.disp-izquierda .cuerpo { flex-direction: row-reverse; }
+.disp-debajo .cuerpo { flex-direction: column; }
+.disp-encima .cuerpo { flex-direction: column-reverse; }
+.disp-superpuesto .cuerpo { display: grid; place-items: center; }
+.disp-superpuesto .cuerpo > * { grid-area: 1 / 1; }
+.disp-superpuesto .textos { text-shadow: 0 2px 4px rgba(0, 0, 0, .9), 0 0 12px rgba(0, 0, 0, .7); z-index: 1; }
+.alin-izquierda .textos { text-align: left; }
+.alin-centro .textos { text-align: center; }
+.alin-derecha .textos { text-align: right; }
+.alin-centro .cabecera { justify-content: center; }
+.alin-derecha .cabecera { justify-content: flex-end; }
+.imagen.avatar { border-radius: 50%; }
+.imagen.regalo { object-fit: contain; }
+.textos { min-width: 0; }
+.titulo { overflow-wrap: anywhere; }
+.importe { font-size: 1.2em; color: var(--acento); filter: brightness(1.4); }
+.mensaje { display: block; font-size: .6em; font-weight: 500; margin-top: .3em; opacity: .92; overflow-wrap: anywhere; }
+
+/* Neón: borde luminoso del color de acento */
+.estilo-neon .alerta {
+  background: rgba(12, 10, 20, .88); border: .08em solid var(--acento); border-radius: .5em; padding: .55em .8em;
+  box-shadow: 0 0 .6em var(--acento), inset 0 0 .5em color-mix(in srgb, var(--acento) 40%, transparent);
+}
+.estilo-neon .etiqueta { color: var(--acento); text-shadow: 0 0 .5em var(--acento); }
+.estilo-neon .titulo { text-shadow: 0 0 .4em color-mix(in srgb, var(--acento) 70%, transparent); }
+
+/* Clásico: tarjeta clara con franja de color */
+.estilo-clasico .alerta {
+  background: #fff; color: #1b1824; border-radius: .4em; padding: .55em .8em; border-top: .25em solid var(--acento);
+  box-shadow: 0 .4em 1.4em rgba(0, 0, 0, .45);
+}
+.estilo-clasico .etiqueta { color: var(--acento); }
+.estilo-clasico .importe { filter: none; }
+
+/* Minimal: solo texto con sombra, para escenas cargadas */
+.estilo-minimal .alerta { text-align: center; text-shadow: 0 2px 4px rgba(0, 0, 0, .9), 0 0 12px rgba(0, 0, 0, .6); }
+.estilo-minimal .cabecera, .estilo-minimal .cuerpo { justify-content: center; }
+.estilo-minimal .etiqueta { color: var(--acento); }
+
+/* Barra que marca el tiempo restante */
+.alerta::after {
+  content: ''; display: block; height: .08em; margin-top: .45em; border-radius: 1em; background: var(--acento);
+  transform-origin: left; animation: tiempo var(--duracion) linear forwards;
+}
+.estilo-minimal .alerta::after { display: none; }
+@keyframes tiempo { to { transform: scaleX(0); } }

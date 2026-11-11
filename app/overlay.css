@@ -1,0 +1,98 @@
+/* Overlay transparente para OBS. Las variables las pone overlay.js según la configuración. */
+:root { --tamano: 22px; --fondo: .55; --fuente: "Segoe UI", system-ui, sans-serif; --acento: #a56bff; --fondo-rgb: 16, 14, 24; --color-texto: #fff; }
+html, body { margin: 0; height: 100%; background: transparent; overflow: hidden; }
+body { font: 600 var(--tamano)/1.3 var(--fuente); color: #fff; }
+
+#chat {
+  position: absolute; inset: 0; padding: .5em; box-sizing: border-box;
+  display: flex; flex-direction: column; gap: .35em; overflow: hidden;
+}
+.alinear-abajo #chat { justify-content: flex-end; }
+.alinear-arriba #chat { justify-content: flex-start; }
+
+/* Texto legible sobre cualquier fondo del juego o la cámara: contorno oscuro fino (recomendado) o grueso. */
+#chat { opacity: var(--opacidad, 1); }
+.texto, .evento-titulo { color: var(--color-texto, #fff); }
+.emote { height: calc(var(--emote, 1.6) * 1em); }
+
+/* Grosor, separación, disposición y lado */
+.grosor-normal { font-weight: 500; }
+.grosor-negrita { font-weight: 700; }
+.sep-compacta #chat { gap: .12em; }
+.sep-normal #chat { gap: .35em; }
+.sep-amplia #chat { gap: .7em; }
+.disp-dos .texto { display: block; margin-top: .1em; }
+.lado-derecha #chat { align-items: flex-end; text-align: right; }
+.lado-derecha.tema-burbujas .msg { align-self: flex-end; border-radius: 1em 1em .25em 1em; }
+.lado-derecha.tema-tarjetas .msg { border-left: 0; border-right: .2em solid var(--borde, transparent); }
+.difuminar #chat { -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 30%); mask-image: linear-gradient(to bottom, transparent 0, #000 30%); }
+.alinear-arriba.difuminar #chat { -webkit-mask-image: linear-gradient(to top, transparent 0, #000 30%); mask-image: linear-gradient(to top, transparent 0, #000 30%); }
+
+/* Máximo de líneas por mensaje: lo que no cabe termina en "…". En dos líneas se limita solo el texto. */
+.con-lineas.disp-linea .linea, .con-lineas.disp-dos .texto {
+  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: var(--lineas); line-clamp: var(--lineas); overflow: hidden;
+}
+
+/* Mensajes seguidos de la misma persona */
+.msg.seguido .plat, .msg.seguido .avatar, .msg.seguido .insignia, .msg.seguido .nombre { display: none; }
+.msg.seguido { margin-top: -.15em; }
+.disp-dos .msg.seguido .texto { margin-top: 0; }
+.msg { flex: none; }
+.contorno-1 .msg { text-shadow: 0 1px 2px rgba(0, 0, 0, .9), 0 0 4px rgba(0, 0, 0, .6); }
+.contorno-2 .msg { text-shadow: -1.5px -1.5px 0 #000, 1.5px -1.5px 0 #000, -1.5px 1.5px 0 #000, 1.5px 1.5px 0 #000, 0 2px 6px rgba(0, 0, 0, .8); }
+.contorno-0 .msg, .tema-burbujas .msg { text-shadow: none; }
+.plat, .insignia { filter: drop-shadow(0 1px 1px rgba(0, 0, 0, .6)); }
+
+.tema-tarjetas .msg {
+  background: rgba(var(--fondo-rgb), var(--fondo)); border-radius: .45em; padding: .35em .6em;
+  border-left: .2em solid var(--borde, transparent);
+}
+.tema-tarjetas .msg[data-plataforma="twitch"] { --borde: #9146FF; }
+.tema-tarjetas .msg[data-plataforma="youtube"] { --borde: #FF0033; }
+.tema-tarjetas .msg[data-plataforma="tiktok"] { --borde: #25F4EE; }
+.tema-tarjetas .msg[data-plataforma="kick"] { --borde: #53FC18; }
+.tema-tarjetas .msg:not(.tipo-mensaje) { border-left-color: var(--acento); background: color-mix(in srgb, var(--acento) 30%, rgba(var(--fondo-rgb), var(--fondo))); }
+
+.tema-limpio .msg { padding: .1em .2em; }
+.tema-limpio .msg:not(.tipo-mensaje) .evento-titulo { color: var(--acento); filter: brightness(1.5); }
+
+.tema-burbujas .msg {
+  align-self: flex-start; max-width: 92%; background: rgba(var(--fondo-rgb), var(--fondo));
+  text-shadow: none; border-radius: 1em 1em 1em .25em; padding: .4em .8em;
+}
+
+.tema-burbujas .msg:not(.tipo-mensaje) { background: var(--acento); color: #fff; }
+
+/* Neón: borde y nombre luminosos del color de acento */
+.tema-neon .msg {
+  background: rgba(var(--fondo-rgb), var(--fondo)); border: .08em solid var(--acento); border-radius: .45em; padding: .3em .6em;
+  box-shadow: 0 0 .45em color-mix(in srgb, var(--acento) 70%, transparent);
+}
+.tema-neon .nombre { text-shadow: 0 0 .4em currentColor; }
+.tema-neon .msg:not(.tipo-mensaje) { border-color: var(--acento); box-shadow: 0 0 .8em var(--acento); }
+
+/* Cristal: fondo translúcido desenfocado */
+.tema-cristal .msg {
+  background: rgba(255, 255, 255, calc(var(--fondo) * .28)); backdrop-filter: blur(10px) saturate(1.3);
+  border: 1px solid rgba(255, 255, 255, .25); border-radius: .7em; padding: .35em .7em;
+}
+.tema-cristal .msg:not(.tipo-mensaje) { background: color-mix(in srgb, var(--acento) 45%, transparent); }
+
+/* Entrada y salida */
+.anim-deslizar .msg { animation: entrar-deslizar .35s cubic-bezier(.2, .9, .3, 1.2) both; }
+.anim-aparecer .msg { animation: entrar-aparecer .35s ease-out both; }
+.msg.saliendo { animation: salir .4s ease-in forwards; }
+@keyframes entrar-deslizar { from { opacity: 0; transform: translateX(-30px); } }
+@keyframes entrar-aparecer { from { opacity: 0; transform: scale(.96); } }
+@keyframes salir { to { opacity: 0; transform: translateX(-20px); } }
+
+/* Mensaje destacado desde el dock: grande y centrado abajo. */
+#destacado {
+  position: absolute; left: 50%; bottom: 6%; transform: translateX(-50%); width: min(86%, 30em);
+  font-size: 1.25em; animation: entrar-aparecer .35s ease-out both;
+}
+#destacado .msg {
+  background: rgba(16, 14, 24, .88); border: .12em solid var(--acento, #b07cff); border-radius: .6em; padding: .6em .9em;
+  box-shadow: 0 .4em 1.5em rgba(0, 0, 0, .5);
+}
+#destacado .avatar { width: 2em; height: 2em; }

@@ -1,0 +1,8 @@
+{
+  "name": "mtv-multichat-puente-kick",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "publicar": "npx wrangler@4 deploy"
+  }
+}
