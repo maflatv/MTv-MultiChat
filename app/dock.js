@@ -275,6 +275,20 @@
         ['Cristal', { tema: 'cristal', colorTexto: '#ffffff', fondo: 0.6, colorNombre: 'usuario', contorno: 1, iconoEstilo: 'insignia' }],
       ],
       controles: [
+        { titulo: 'Tamaño y posición', abierto: true, ayuda: 'Pon en OBS la fuente de navegador con este mismo tamaño. La vista previa lo muestra a escala.' },
+        { tipo: 'presets', t: 'Tamaños rápidos', op: [
+          ['Vertical 450 × 800', { fuenteAncho: 450, fuenteAlto: 800, ancho: 0, alto: 0, margen: 0 }],
+          ['Columna en escena 1080p', { fuenteAncho: 1920, fuenteAlto: 1080, ancho: 420, alto: 900, anclaje: 'abajo-izquierda', margen: 30 }],
+          ['Banda inferior 1080p', { fuenteAncho: 1920, fuenteAlto: 1080, ancho: 1100, alto: 260, anclaje: 'abajo-centro', margen: 20 }],
+          ['Esquina derecha 1080p', { fuenteAncho: 1920, fuenteAlto: 1080, ancho: 480, alto: 520, anclaje: 'abajo-derecha', margen: 30 }],
+          ['Pantalla completa 1080p', { fuenteAncho: 1920, fuenteAlto: 1080, ancho: 0, alto: 0, margen: 0 }],
+        ] },
+        { k: 'fuenteAncho', t: 'Ancho de la fuente en OBS', tipo: 'numero', min: 100, max: 3840, u: 'px' },
+        { k: 'fuenteAlto', t: 'Alto de la fuente en OBS', tipo: 'numero', min: 100, max: 2160, u: 'px' },
+        { k: 'ancho', t: 'Ancho del chat', tipo: 'numero', min: 0, max: 3840, u: 'px', ayuda: '0 = todo el ancho' },
+        { k: 'alto', t: 'Alto del chat', tipo: 'numero', min: 0, max: 2160, u: 'px', ayuda: '0 = todo el alto' },
+        { k: 'anclaje', t: 'Posición del chat', tipo: 'anclaje' },
+        { k: 'margen', t: 'Margen al borde', tipo: 'rango', min: 0, max: 200, paso: 5, u: 'px' },
         { titulo: 'Estilo', abierto: true },
         { k: 'tema', t: 'Estilo', tipo: 'opciones', op: [['tarjetas', 'Tarjetas'], ['limpio', 'Limpio'], ['burbujas', 'Burbujas'], ['neon', 'Neón'], ['cristal', 'Cristal']] },
         { k: 'tamano', t: 'Tamaño del texto', tipo: 'rango', min: 12, max: 48, paso: 1, u: 'px' },
@@ -330,6 +344,11 @@
         { k: 'tipos.raid', t: 'Raids', tipo: 'si', probar: 'raid' },
         { k: 'tipos.aviso', t: 'Canjes de puntos', tipo: 'si' },
         { k: 'minimoUsd', t: 'Donación mínima', tipo: 'rango', min: 0, max: 50, paso: 1, mostrar: v => (v ? `${v} USD aprox.` : 'todas') },
+        { titulo: 'Tamaño y posición', ayuda: 'Pon en OBS la fuente de navegador con este mismo tamaño (normalmente el de tu escena).' },
+        { k: 'fuenteAncho', t: 'Ancho de la fuente en OBS', tipo: 'numero', min: 100, max: 3840, u: 'px' },
+        { k: 'fuenteAlto', t: 'Alto de la fuente en OBS', tipo: 'numero', min: 100, max: 2160, u: 'px' },
+        { k: 'anchoAlerta', t: 'Ancho de la alerta', tipo: 'rango', min: 0, max: 1600, paso: 20, mostrar: v => (v ? `${v} px` : 'automático') },
+        { k: 'lado', t: 'Lado', tipo: 'opciones', op: [['izquierda', 'Izquierda'], ['centro', 'Centro'], ['derecha', 'Derecha']] },
         { titulo: 'Aspecto' },
         { k: 'estilo', t: 'Estilo', tipo: 'opciones', op: [['neon', 'Neón'], ['clasico', 'Clásico'], ['minimal', 'Minimal']] },
         { k: 'acento', t: 'Color de acento', tipo: 'color' },
@@ -402,6 +421,7 @@
     $('ayuda-obs').textContent = p.ayuda;
     const vista = `${p.ruta}?vista=1`;
     if ($('vista').getAttribute('src') !== vista) $('vista').src = vista;
+    ajustarVista();
 
     const form = $('form-overlay');
     form.replaceChildren();
@@ -439,7 +459,7 @@
       const fila = MC.el('label', `control c-${c.tipo}`);
       const nombre = MC.el('span', 'control-nombre', c.t);
       fila.append(nombre);
-      const v = leerRuta(datos, c.k);
+      const v = c.k ? leerRuta(datos, c.k) : undefined;
       const poner = valor => cambiar(p.seccion, c.k, valor);
       if (c.tipo === 'opciones') {
         const grupo = MC.el('span', 'segmentos');
@@ -478,6 +498,34 @@
         }
         fila.append(lista);
         if (c.ayuda) fila.append(MC.el('span', 'ayuda', c.ayuda(datos)));
+      } else if (c.tipo === 'numero') {
+        const n = MC.el('input');
+        Object.assign(n, { type: 'number', min: c.min, max: c.max, step: 1, value: v ?? 0 });
+        n.onchange = () => { const x = Math.min(Math.max(Math.round(Number(n.value) || 0), c.min), c.max); n.value = x; poner(x); ajustarVista(); };
+        const caja = MC.el('span', 'numero');
+        caja.append(n, MC.el('span', 'unidad', c.u || ''));
+        if (c.ayuda) caja.append(MC.el('span', 'ayuda', c.ayuda));
+        fila.append(caja);
+      } else if (c.tipo === 'presets') {
+        const g = MC.el('span', 'rapidos-botones');
+        for (const [nombre, valores] of c.op) {
+          const b = MC.el('button', null, nombre);
+          b.type = 'button';
+          b.onclick = e => { e.preventDefault(); Object.assign(config[p.seccion], valores); MC.orden('config', { [p.seccion]: config[p.seccion] }); dibujarEditor(); };
+          g.append(b);
+        }
+        fila.append(g);
+      } else if (c.tipo === 'anclaje') {
+        const rejilla = MC.el('span', 'anclaje');
+        for (const vv of ['arriba', 'centro', 'abajo']) for (const hh of ['izquierda', 'centro', 'derecha']) {
+          const valor = `${vv}-${hh}`;
+          const b = MC.el('button', valor === v ? 'activo' : null);
+          b.type = 'button';
+          b.title = valor;
+          b.onclick = e => { e.preventDefault(); poner(valor); rejilla.querySelectorAll('button').forEach(x => x.classList.toggle('activo', x === b)); };
+          rejilla.append(b);
+        }
+        fila.append(rejilla);
       } else if (c.tipo === 'color') {
         const col = MC.el('input');
         col.type = 'color';
@@ -523,6 +571,19 @@
       destino.append(fila);
     }
   }
+  // La vista previa se dibuja al tamaño de la fuente de OBS y se reduce para caber: así se ve igual que en OBS.
+  function ajustarVista() {
+    const datos = config?.[PESTANAS[pestana].seccion];
+    if (!datos) return;
+    const w = Number(datos.fuenteAncho) || (pestana === 'chat' ? 450 : 1920);
+    const h = Number(datos.fuenteAlto) || (pestana === 'chat' ? 800 : 1080);
+    const caja = $('vista-caja');
+    const escala = Math.min(caja.clientWidth / w, 420 / h, 1);
+    Object.assign($('vista').style, { width: `${w}px`, height: `${h}px`, transform: `scale(${escala})` });
+    caja.style.height = `${Math.round(h * escala)}px`;
+    $('vista-medida').textContent = `${w} × ${h}`;
+  }
+  window.addEventListener('resize', () => ajustarVista());
   const abiertos = new Set();
 
   // ---------- Sonidos y archivos propios de las alertas ----------

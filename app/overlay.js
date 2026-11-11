@@ -21,6 +21,7 @@
     r.setProperty('--fondo-rgb', MC.rgb(op.colorFondo) || '16, 14, 24');
     r.setProperty('--emote', String(op.tamEmotes || 1.6));
     r.setProperty('--interlineado', String(op.interlineado || 1.35));
+    MC.colocar(chat, op);
     r.setProperty('--lineas', String(op.lineas || 0));
     MC.cargarFuente(op.fuente);
     // Fondo claro y bastante opaco: los nombres se oscurecen en vez de aclararse.

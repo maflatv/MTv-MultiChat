@@ -88,8 +88,20 @@ button.enlace { background: none; border: 0; padding: 4px 0 0; color: var(--suav
 /* Editor del overlay */
 .url { display: flex; gap: 6px; align-items: center; }
 .url code { flex: 1; background: var(--bg); border: 1px solid var(--borde); border-radius: 6px; padding: 6px 8px; font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-#vista { width: 100%; height: 300px; border: 1px solid var(--borde); border-radius: 8px; margin: 4px 0 12px;
+/* Vista previa: el iframe tiene el tamaño real de la fuente de OBS y se escala para caber. */
+#vista-caja { position: relative; width: 100%; overflow: hidden; margin: 4px 0 12px; border: 1px solid var(--borde); border-radius: 8px;
   background: repeating-conic-gradient(#2a2633 0 25%, #221f2b 0 50%) 0 0 / 20px 20px; }
+#vista { border: 0; transform-origin: 0 0; display: block; background: transparent; }
+#vista-medida { position: absolute; right: 6px; bottom: 4px; font-size: 11px; color: var(--suave); background: rgba(0, 0, 0, .55); padding: 1px 6px; border-radius: 4px; pointer-events: none; }
+.numero { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.numero input { width: 90px; font: inherit; color: inherit; background: var(--bg); border: 1px solid var(--borde); border-radius: 6px; padding: 4px 6px; }
+.numero .unidad { color: var(--suave); font-size: 12px; }
+.numero .ayuda { margin: 0; }
+.anclaje { display: grid; grid-template-columns: repeat(3, 34px); gap: 4px; }
+.anclaje button { height: 26px; padding: 0; position: relative; }
+.anclaje button::after { content: ''; position: absolute; inset: 9px 13px; border-radius: 2px; background: var(--suave); }
+.anclaje button.activo { background: var(--acento); border-color: var(--acento); }
+.anclaje button.activo::after { background: var(--sobre-acento); }
 .control { display: block; margin-bottom: 12px; }
 .control-nombre { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 4px; }
 .control output { color: var(--suave); }

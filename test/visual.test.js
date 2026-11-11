@@ -103,3 +103,16 @@ test('temas de nombres: muchos colores, sin repetidos ni demasiado parecidos', (
     }
   }
 });
+
+test('colocar el chat dentro de la fuente: tamaño, anclaje y margen', () => {
+  const caja = { style: {} };
+  MC.colocar(caja, { ancho: 400, alto: 900, anclaje: 'abajo-izquierda', margen: 30 });
+  assert.deepEqual([caja.style.width, caja.style.height, caja.style.left, caja.style.bottom, caja.style.top, caja.style.transform], ['400px', '900px', '30px', '30px', '', '']);
+  MC.colocar(caja, { ancho: 1100, alto: 260, anclaje: 'abajo-centro', margen: 20 });
+  assert.deepEqual([caja.style.left, caja.style.transform, caja.style.bottom], ['50%', 'translateX(-50%)', '20px']);
+  MC.colocar(caja, { ancho: 480, alto: 520, anclaje: 'arriba-derecha', margen: 10 });
+  assert.deepEqual([caja.style.right, caja.style.top, caja.style.left, caja.style.bottom], ['10px', '10px', '', '']);
+  // 0 = toda la fuente (sin margen en ese eje).
+  MC.colocar(caja, { ancho: 0, alto: 0, anclaje: 'centro-centro', margen: 50 });
+  assert.deepEqual([caja.style.left, caja.style.right, caja.style.top, caja.style.bottom, caja.style.width, caja.style.transform], ['0', '0', '0', '0', '', '']);
+});

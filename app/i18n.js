@@ -124,6 +124,13 @@
     '¡{nombre} se une a la familia!': '{nombre} joined the family!', '{nombre} lleva {cantidad} meses': '{nombre} has been here {cantidad} months',
     '{nombre} regala {cantidad} subs': '{nombre} gifted {cantidad} subs', '{nombre} dona {importe}': '{nombre} donated {importe}', '¡Raid de {nombre} con {cantidad}!': 'Raid from {nombre} with {cantidad}!',
     'no existe': "doesn't exist", 'No encontrado': 'Not found',
+    'Tamaño y posición': 'Size and position', 'Tamaños rápidos': 'Quick sizes', 'Ancho de la fuente en OBS': 'OBS source width', 'Alto de la fuente en OBS': 'OBS source height',
+    'Ancho del chat': 'Chat width', 'Alto del chat': 'Chat height', '0 = todo el ancho': '0 = full width', '0 = todo el alto': '0 = full height', 'Posición del chat': 'Chat position',
+    'Margen al borde': 'Edge margin', 'Ancho de la alerta': 'Alert width', 'automático': 'automatic',
+    'Pon en OBS la fuente de navegador con este mismo tamaño. La vista previa lo muestra a escala.': 'Give the OBS browser source this same size. The preview shows it to scale.',
+    'Pon en OBS la fuente de navegador con este mismo tamaño (normalmente el de tu escena).': 'Give the OBS browser source this same size (usually your scene size).',
+    'Vertical 450 × 800': 'Vertical 450 × 800', 'Columna en escena 1080p': 'Column in a 1080p scene', 'Banda inferior 1080p': 'Bottom band 1080p',
+    'Esquina derecha 1080p': 'Right corner 1080p', 'Pantalla completa 1080p': 'Full screen 1080p',
     'El puerto 7390 está ocupado. ¿MTv MultiChat ya está abierto (quizá con iniciar.bat)?': 'Port 7390 is in use. Is MTv MultiChat already open (maybe with iniciar.bat)?',
   };
 

@@ -20,7 +20,8 @@
     r.setProperty('--duracion', `${op.duracion}s`);
     MC.cargarFuente(op.fuente);
     r.setProperty('--tam-imagen', `${op.tamImagen || 2.6}em`);
-    document.body.className = [`estilo-${op.estilo}`, `pos-${op.posicion}`, `disp-${op.disposicion || 'derecha'}`, `alin-${op.alinearTexto || 'izquierda'}`, `entrada-${op.entrada || 'rebote'}`, `salida-${op.salida || 'desvanecer'}`].join(' ');
+    r.setProperty('--ancho-alerta', op.anchoAlerta > 0 ? `${op.anchoAlerta}px` : '22em');
+    document.body.className = [`estilo-${op.estilo}`, `pos-${op.posicion}`, `lado-${op.lado || 'centro'}`, `disp-${op.disposicion || 'derecha'}`, `alin-${op.alinearTexto || 'izquierda'}`, `entrada-${op.entrada || 'rebote'}`, `salida-${op.salida || 'desvanecer'}`].join(' ');
 
   }
 

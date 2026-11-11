@@ -142,6 +142,26 @@ function insignias(m) {
   return lista;
 }
 
+// Coloca una caja (el chat) dentro de la página: ancho y alto en px (0 = todo), anclaje "vertical-horizontal" y margen.
+function colocar(caja, { ancho = 0, alto = 0, anclaje = 'abajo-izquierda', margen = 0 } = {}) {
+  const [v, h] = String(anclaje).split('-');
+  const m = `${Math.max(Number(margen) || 0, 0)}px`;
+  const s = caja.style;
+  for (const p of ['top', 'bottom', 'left', 'right', 'width', 'height', 'transform', 'inset']) s[p] = '';
+  const transform = [];
+  if (ancho > 0) {
+    s.width = `${ancho}px`;
+    s.maxWidth = '100%';
+    if (h === 'derecha') s.right = m; else if (h === 'centro') { s.left = '50%'; transform.push('translateX(-50%)'); } else s.left = m;
+  } else { s.left = '0'; s.right = '0'; }
+  if (alto > 0) {
+    s.height = `${alto}px`;
+    s.maxHeight = '100%';
+    if (v === 'arriba') s.top = m; else if (v === 'centro') { s.top = '50%'; transform.push('translateY(-50%)'); } else s.bottom = m;
+  } else { s.top = '0'; s.bottom = '0'; }
+  s.transform = transform.join(' ');
+}
+
 // Fuentes de Google: se cargan solo si se eligen (OBS tiene conexión a Internet).
 const FUENTES_GOOGLE = ['Poppins', 'Montserrat', 'Nunito', 'Roboto', 'Rubik', 'Comfortaa', 'Bangers', 'Press Start 2P', 'Pixelify Sans'];
 function cargarFuente(nombre) {
@@ -286,4 +306,4 @@ function dibujarMensaje(m, op = {}) {
   return caja;
 }
 
-window.MC = { idioma: 'es', t, aplicarIdioma, TEMAS_NOMBRES, colorDeTema, largoMensaje, luminancia, PLATAFORMAS, FUENTES_GOOGLE, conectar, orden, el, iconoPlataforma, insigniaPropia, dibujarMensaje, cargarFuente, rgb, ETIQUETA_TIPO };
+window.MC = { colocar, idioma: 'es', t, aplicarIdioma, TEMAS_NOMBRES, colorDeTema, largoMensaje, luminancia, PLATAFORMAS, FUENTES_GOOGLE, conectar, orden, el, iconoPlataforma, insigniaPropia, dibujarMensaje, cargarFuente, rgb, ETIQUETA_TIPO };

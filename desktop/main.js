@@ -2,7 +2,8 @@
 // ventana y habilita lo que necesita un navegador real (Kick en modo ventana, TikTok) y las actualizaciones.
 // Los overlays de OBS siguen en http://localhost:7390/overlay y /alertas.
 const path = require('path');
-const { app, BrowserWindow, dialog, shell } = require('electron');
+const fs = require('fs');
+const { app, BrowserWindow, dialog, screen, shell } = require('electron');
 const { ES_INSTALADA, RAIZ, VERSION, carpetaDatos } = require('../lib/runtime.js');
 const { crearServidor } = require('../server.js');
 const { KickVentana } = require('../lib/conectores/kick-ventana.js');
@@ -69,12 +70,34 @@ actualizacion.accion = function accion(a) {
 };
 
 // ---------- Ventana del dock ----------
+// Se recuerda dónde dejó el usuario la ventana, siempre que siga dentro de una pantalla conectada.
+const ARCHIVO_VENTANA = path.join(DATOS, 'ventana.json');
+function medidasGuardadas() {
+  let m = null;
+  try { m = JSON.parse(fs.readFileSync(ARCHIVO_VENTANA, 'utf8')); } catch { return { width: 1400, height: 860 }; }
+  const visible = screen.getAllDisplays().some(d => {
+    const a = d.workArea;
+    return m.x < a.x + a.width && m.x + 80 > a.x && m.y < a.y + a.height && m.y + 30 > a.y;
+  });
+  return visible && m.width >= 900 && m.height >= 520 ? m : { width: m.width || 1400, height: m.height || 860, maximizada: m.maximizada };
+}
+function guardarMedidas() {
+  try {
+    fs.mkdirSync(DATOS, { recursive: true });
+    fs.writeFileSync(ARCHIVO_VENTANA, JSON.stringify({ ...dock.getNormalBounds(), maximizada: dock.isMaximized() }));
+  } catch { /* no es grave */ }
+}
+
 function abrirDock(puerto) {
+  const medidas = medidasGuardadas();
   dock = new BrowserWindow({
-    width: 1400, height: 860, minWidth: 900, minHeight: 520, title: `MTv MultiChat ${VERSION}`, icon: ICONO,
+    width: medidas.width, height: medidas.height, x: medidas.x, y: medidas.y,
+    minWidth: 900, minHeight: 520, title: `MTv MultiChat ${VERSION}`, icon: ICONO,
     backgroundColor: '#0E0B16', autoHideMenuBar: true,
     webPreferences: { sandbox: true, contextIsolation: true, nodeIntegration: false },
   });
+  if (medidas.maximizada) dock.maximize();
+  dock.on('close', guardarMedidas);
   dock.on('page-title-updated', e => e.preventDefault());
   const origen = `http://localhost:${puerto}`;
   // Iniciar sesión con Kick, las redes, Ko-fi y demás enlaces externos se abren en el navegador del usuario.
