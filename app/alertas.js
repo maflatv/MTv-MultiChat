@@ -130,7 +130,7 @@
   }
 
   function muestra() {
-    encolar({ id: 'muestra', plataforma: 'twitch', tipo: 'suscripcion', titulo: 'LunaPixel se ha suscrito 6 meses', cantidad: 6, autor: { nombre: 'LunaPixel', roles: {} }, partes: [{ t: 'texto', v: '¡Medio año ya! Así se verán tus alertas' }], importe: null });
+    encolar({ id: 'muestra', plataforma: 'twitch', tipo: 'suscripcion', titulo: 'LunaPixel se ha suscrito 6 meses', cantidad: 6, autor: { nombre: 'LunaPixel', roles: {} }, partes: [{ t: 'texto', v: MC.t('¡Medio año ya! Así se verán tus alertas') }], importe: null });
   }
 
   MC.conectar({

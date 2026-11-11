@@ -14,6 +14,7 @@ const twitchCuenta = require('./lib/conectores/twitch-cuenta.js');
 const { mensajePrueba, PruebaAuto } = require('./lib/prueba.js');
 const { Medios } = require('./lib/medios.js');
 const { VERSION } = require('./lib/runtime.js');
+const I18N = require('./app/i18n.js');
 
 const PUERTO = Number(process.env.PORT) || 7390;
 const APP = path.join(__dirname, 'app');
@@ -38,9 +39,12 @@ function crearServidor({ datos = path.join(__dirname, 'userdata'), extras = {} }
   const estadoConexiones = () => Object.values(conectores).map(c => c.estado);
 
   bus.on('evento', difundir);
-  const pruebaAuto = new PruebaAuto(tipo => bus.mensaje(mensajePrueba(tipo)));
+  const pruebaAuto = new PruebaAuto(tipo => bus.mensaje(mensajePrueba(tipo, idioma())));
   // Actualizaciones (solo en la app de escritorio instalada): cada cambio de estado llega al dock.
   if (extras.actualizacion) extras.actualizacion.alCambiar = estado => difundir({ ev: 'actualizacion', ...estado });
+  // Idioma de la interfaz y de los overlays: el elegido o, en automático, el del sistema.
+  const idioma = () => I18N.resolver(config.datos.idioma, extras.idiomaSistema || Intl.DateTimeFormat().resolvedOptions().locale);
+  const T = texto => I18N.traducir(texto, idioma());
   const info = () => ({ version: VERSION, escritorio: !!extras.ajustarVentana, actualizacion: extras.actualizacion?.estado() || null });
   bus.on('conexion', () => difundir({ ev: 'conexiones', lista: estadoConexiones() }));
 
@@ -110,6 +114,8 @@ function crearServidor({ datos = path.join(__dirname, 'userdata'), extras = {} }
       if (cuerpo.overlay) difundir({ ev: 'overlay', overlay: config.datos.overlay });
       if (cuerpo.alertas) difundir({ ev: 'alertas', alertas: config.datos.alertas });
       if (cuerpo.dock) extras.ajustarVentana?.(config.datos.dock);
+      // Cambio de idioma: las páginas se recargan para aplicarlo.
+      if ('idioma' in cuerpo) difundir({ ev: 'idioma', idioma: idioma() });
       return config.publica();
     },
     async 'tiktok-login'() {
@@ -154,7 +160,7 @@ function crearServidor({ datos = path.join(__dirname, 'userdata'), extras = {} }
     },
     async destacar({ id }) { bus.destacar(id || null); return { ok: true }; },
     async ocultar({ id }) { bus.borrar({ ids: [id] }); return { ok: true }; },
-    async prueba({ tipo }) { bus.mensaje(mensajePrueba(tipo)); return { ok: true }; },
+    async prueba({ tipo }) { bus.mensaje(mensajePrueba(tipo, idioma())); return { ok: true }; },
     // Envío automático: mensajes cada X s y eventos cada Y s (0 = sin eventos). No se guarda: es solo para probar.
     async 'prueba-auto'({ activo, mensajes, eventos }) {
       pruebaAuto.configurar({ activo: !!activo, mensajes: Number(mensajes), eventos: Number(eventos) });
@@ -171,6 +177,8 @@ function crearServidor({ datos = path.join(__dirname, 'userdata'), extras = {} }
   const pagina = (res, codigo, titulo, texto) => {
     const esc = t => String(t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
     res.writeHead(codigo, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' });
+    titulo = T(titulo);
+    texto = T(texto);
     res.end(`<!doctype html><meta charset="utf-8"><title>MTv MultiChat</title><body style="font:16px system-ui;background:#121018;color:#ece8f5;display:grid;place-content:center;height:90vh;text-align:center"><h2>${esc(titulo)}</h2><p>${esc(texto)}</p>`);
   };
 
@@ -217,7 +225,7 @@ function crearServidor({ datos = path.join(__dirname, 'userdata'), extras = {} }
     if (url.pathname === '/api/eventos') {
       res.writeHead(200, { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-store', Connection: 'keep-alive' });
       res.write('retry: 2000\n\n');
-      enviar(res, { ev: 'inicio', ...bus.estado(), overlay: config.datos.overlay, alertas: config.datos.alertas, conexiones: estadoConexiones(), escritorio: !!extras.ajustarVentana, pruebaAuto: pruebaAuto.estado });
+      enviar(res, { ev: 'inicio', ...bus.estado(), overlay: config.datos.overlay, alertas: config.datos.alertas, conexiones: estadoConexiones(), escritorio: !!extras.ajustarVentana, pruebaAuto: pruebaAuto.estado, idioma: idioma(), idiomaElegido: config.datos.idioma });
       clientes.add(res);
       const latido = setInterval(() => res.write(': latido\n\n'), 20_000);
       req.on('close', () => { clearInterval(latido); clientes.delete(res); });
@@ -232,7 +240,7 @@ function crearServidor({ datos = path.join(__dirname, 'userdata'), extras = {} }
       try {
         const datos = await leerBinario(req, 50 * 1024 * 1024 + 1);
         return json(res, 200, medios.guardar(decodeURIComponent(String(req.headers['x-nombre'] || '')), datos));
-      } catch (e) { return json(res, 400, { error: e.message }); }
+      } catch (e) { return json(res, 400, { error: T(e.message) }); }
     }
     if (url.pathname.startsWith('/medios/')) {
       const ruta = medios.ruta(decodeURIComponent(url.pathname.slice(8)));
@@ -248,7 +256,7 @@ function crearServidor({ datos = path.join(__dirname, 'userdata'), extras = {} }
       if (req.headers['x-multichat'] !== '1') return json(res, 403, { error: 'prohibido' });
       const accion = acciones[url.pathname.slice(5)];
       if (!accion) return json(res, 404, { error: 'no existe' });
-      try { return json(res, 200, await accion(await leerCuerpo(req))); } catch (e) { return json(res, 400, { error: e.message }); }
+      try { return json(res, 200, await accion(await leerCuerpo(req))); } catch (e) { return json(res, 400, { error: T(e.message) }); }
     }
 
     // Archivos de la interfaz. /overlay y /dock sin extensión, para que la URL de OBS sea corta.

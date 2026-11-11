@@ -1,11 +1,27 @@
 // Código compartido por el dock y el overlay.
 /* global window, document, EventSource, fetch */
 
+// Idioma de la interfaz (lo decide el servidor) y traducción de textos sueltos.
+let idioma = 'es';
+let observador = null;
+const t = texto => window.I18N.traducir(texto, idioma);
+function aplicarIdioma(nuevo) {
+  if (nuevo === idioma && (observador || nuevo === 'es')) return;
+  idioma = nuevo;
+  document.documentElement.lang = nuevo;
+  window.MC.idioma = nuevo;
+  observador?.disconnect();
+  observador = window.I18N.observar(document.body, nuevo);
+}
+
 // Conexión en tiempo real con el servidor. EventSource se reconecta solo si el servidor se reinicia.
 function conectar(manejadores) {
   const es = new EventSource('/api/eventos');
   es.onmessage = e => {
     const evento = JSON.parse(e.data);
+    // El idioma va primero, para que todo lo que se dibuje después salga ya traducido.
+    if (evento.ev === 'inicio' && evento.idioma) aplicarIdioma(evento.idioma);
+    if (evento.ev === 'idioma') { window.location.reload(); return; }
     manejadores[evento.ev]?.(evento);
   };
   es.onerror = () => manejadores.caida?.();
@@ -270,4 +286,4 @@ function dibujarMensaje(m, op = {}) {
   return caja;
 }
 
-window.MC = { TEMAS_NOMBRES, colorDeTema, largoMensaje, luminancia, PLATAFORMAS, FUENTES_GOOGLE, conectar, orden, el, iconoPlataforma, insigniaPropia, dibujarMensaje, cargarFuente, rgb, ETIQUETA_TIPO };
+window.MC = { idioma: 'es', t, aplicarIdioma, TEMAS_NOMBRES, colorDeTema, largoMensaje, luminancia, PLATAFORMAS, FUENTES_GOOGLE, conectar, orden, el, iconoPlataforma, insigniaPropia, dibujarMensaje, cargarFuente, rgb, ETIQUETA_TIPO };

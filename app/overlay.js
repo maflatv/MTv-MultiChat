@@ -120,9 +120,9 @@
 
   function muestras() {
     const ej = [
-      { plataforma: 'twitch', tipo: 'mensaje', autor: { nombre: 'LunaPixel', color: '#FF69B4', roles: { sub: true } }, partes: [{ t: 'texto', v: '¡Hola a todos! Así se verá el chat' }] },
-      { plataforma: 'youtube', tipo: 'mensaje', autor: { nombre: 'ElGranTaco', color: '#1E90FF', roles: { mod: true } }, partes: [{ t: 'texto', v: 'Se lee genial desde aquí' }] },
-      { plataforma: 'tiktok', tipo: 'donacion', titulo: '5 USD', autor: { nombre: 'Sakura_Chan', roles: {} }, partes: [{ t: 'texto', v: '¡Sigue así!' }] },
+      { plataforma: 'twitch', tipo: 'mensaje', autor: { nombre: 'LunaPixel', color: '#FF69B4', roles: { sub: true } }, partes: [{ t: 'texto', v: MC.t('¡Hola a todos! Así se verá el chat') }] },
+      { plataforma: 'youtube', tipo: 'mensaje', autor: { nombre: 'ElGranTaco', color: '#1E90FF', roles: { mod: true } }, partes: [{ t: 'texto', v: MC.t('Se lee genial desde aquí') }] },
+      { plataforma: 'tiktok', tipo: 'donacion', titulo: '5 USD', autor: { nombre: 'Sakura_Chan', roles: {} }, partes: [{ t: 'texto', v: MC.t('¡Sigue así!') }] },
       { plataforma: 'kick', tipo: 'mensaje', autor: { nombre: 'DonPepe', color: '#9ACD32', roles: { vip: true } }, partes: [{ t: 'texto', v: 'GG' }] },
       { plataforma: 'twitch', tipo: 'suscripcion', titulo: 'MarioGamer88 se ha suscrito 6 meses', autor: { nombre: 'MarioGamer88', roles: { sub: true } }, partes: [] },
     ];

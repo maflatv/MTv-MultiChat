@@ -90,6 +90,16 @@ test('servidor: prueba, destacar, ocultar y protección', async () => {
     assert.equal(alertas.tipos.raid, true);
     assert.equal(alertas.plantillas.follow, '¡{nombre}!');
 
+    // Idioma: el inicio lo indica; al cambiarlo, se avisa a las páginas y los errores salen en ese idioma.
+    assert.ok(['es', 'en'].includes(recibidos[0].idioma));
+    assert.equal((await fetch(`http://localhost:${puerto}/i18n.js`)).status, 200);
+    await post(puerto, 'config', { idioma: 'en' });
+    await esperar(50);
+    assert.equal(recibidos.filter(e => e.ev === 'idioma').at(-1).idioma, 'en');
+    const subida = await fetch(`http://localhost:${puerto}/api/medios`, { method: 'POST', headers: { 'X-MultiChat': '1', 'X-Nombre': 'x.html' }, body: 'x' });
+    assert.match((await subida.json()).error, /^File type not supported/);
+    await post(puerto, 'config', { idioma: 'es' });
+
     // La configuración del overlay se guarda en disco.
     await post(puerto, 'config', { overlay: { tamano: 30 } });
     assert.equal(JSON.parse(fs.readFileSync(path.join(datos, 'config.json'), 'utf8')).overlay.tamano, 30);

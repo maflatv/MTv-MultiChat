@@ -97,12 +97,14 @@ app.whenReady().then(async () => {
     dock.setOpacity(Math.min(Math.max(Number(op.opacidad) || 1, 0.3), 1));
     dock.setAlwaysOnTop(!!op.encima, 'floating');
   };
-  servidor = crearServidor({ datos: DATOS, extras: { KickVentana, TikTokVentana, abrirLoginTikTok: abrirInicioSesion, ajustarVentana, actualizacion } });
+  servidor = crearServidor({ datos: DATOS, extras: { KickVentana, TikTokVentana, abrirLoginTikTok: abrirInicioSesion, ajustarVentana, actualizacion, idiomaSistema: app.getLocale() } });
   let puerto;
   try {
     puerto = await servidor.escuchar();
   } catch (e) {
-    dialog.showErrorBox('MTv MultiChat', e.code === 'EADDRINUSE' ? 'El puerto 7390 está ocupado. ¿MTv MultiChat ya está abierto (quizá con iniciar.bat)?' : e.message);
+    const I18N = require('../app/i18n.js');
+    const msg = e.code === 'EADDRINUSE' ? 'El puerto 7390 está ocupado. ¿MTv MultiChat ya está abierto (quizá con iniciar.bat)?' : e.message;
+    dialog.showErrorBox('MTv MultiChat', I18N.traducir(msg, I18N.resolver('auto', app.getLocale())));
     app.quit();
     return;
   }

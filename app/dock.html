@@ -138,6 +138,43 @@
   </ul>
 </dialog>
 
+<template id="ayuda-en">
+  <button class="cerrar" data-cerrar title="Close">✕</button>
+  <h2>Help</h2>
+  <h3>1. Connect your platforms</h3>
+  <ul>
+    <li><b>Twitch</b>: type your channel and click Connect. For follows, redemptions, avatars and official badges, log in (you'll get a code for twitch.tv/activate).</li>
+    <li><b>YouTube</b>: type your channel (@name). It connects by itself every time you go live.</li>
+    <li><b>TikTok</b>: type your username. Desktop app only; it connects by itself when you go live.</li>
+    <li><b>Kick</b>: "With my account" (more events) or "Without account" (desktop app only).</li>
+  </ul>
+  <h3>2. Add the overlays to OBS</h3>
+  <ul>
+    <li>In the editor (right) pick the <b>Chat</b> or <b>Alerts</b> tab and click <b>Copy</b>.</li>
+    <li>In OBS: Source → <b>Browser</b> → paste the URL. Chat: 450 × 800. Alerts: 1920 × 1080 and turn on "Control audio via OBS".</li>
+  </ul>
+  <h3>3. Customize</h3>
+  <ul>
+    <li>Try the <b>quick styles</b>, then adjust colours, text and layout. The preview updates instantly.</li>
+    <li>In <b>Alerts</b> you can upload your own sounds, images, GIFs or videos, and pick a different one per alert type.</li>
+    <li>Use <b>Test</b> (left) or <b>automatic sending</b> to see how it looks without going live.</li>
+  </ul>
+  <h3>4. While live</h3>
+  <ul>
+    <li>Hover over a message: <b>highlight</b> shows it big on the overlay; <b>remove</b> hides it from the overlay.</li>
+    <li>Filter by platform or by events, and search the chat from the top bar.</li>
+    <li>The <b>Aa</b> button changes the dock font size and language; in the desktop app also the window transparency and "always on top".</li>
+  </ul>
+  <h3>Common problems</h3>
+  <ul>
+    <li><b>YouTube or TikTok "Waiting for stream"</b>: normal if you're not live; it will connect by itself.</li>
+    <li><b>TikTok gets no messages</b>: some streams require a login; click "Log in to TikTok".</li>
+    <li><b>The overlay doesn't show in OBS</b>: check that MTv MultiChat is open and that the URL is the one you copied.</li>
+    <li><b>Alerts make no sound</b>: in OBS, turn on "Control audio via OBS" on the source and raise its volume in the mixer.</li>
+  </ul>
+</template>
+
+<script src="/i18n.js"></script>
 <script src="/comun.js"></script>
 <script src="/dock.js"></script>
 </body>

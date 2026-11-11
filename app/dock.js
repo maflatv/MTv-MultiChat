@@ -110,7 +110,7 @@
     } else if (cuenta.clientIdListo) {
       const b = MC.el('button', 'enlace', 'Iniciar sesión en Twitch (follows, canjes, avatares)');
       b.onclick = async () => {
-        try { codigoTwitch = await MC.orden('twitch-login'); } catch (e) { alert(e.message); }
+        try { codigoTwitch = await MC.orden('twitch-login'); } catch (e) { alert(MC.t(e.message)); }
         dibujarCuentas();
       };
       caja.append(b);
@@ -159,7 +159,7 @@
       if (c.login) {
         // Algunos directos solo se ven con sesión iniciada: abre TikTok en una ventana de la app.
         const b = MC.el('button', 'enlace', 'Iniciar sesión en TikTok (opcional)');
-        b.onclick = () => MC.orden('tiktok-login').catch(e => alert(e.message));
+        b.onclick = () => MC.orden('tiktok-login').catch(e => alert(MC.t(e.message)));
         tarjeta.append(b);
       }
       if (est.detalle && est.estado !== 'parado') tarjeta.append(MC.el('p', 'detalle', est.detalle));
@@ -544,7 +544,7 @@
     if (!archivo) return null;
     const r = await fetch('/api/medios', { method: 'POST', headers: { 'X-MultiChat': '1', 'X-Nombre': encodeURIComponent(archivo.name), 'Content-Type': archivo.type || 'application/octet-stream' }, body: archivo });
     const j = await r.json();
-    if (!r.ok) { alert(j.error || 'No se pudo subir el archivo'); return null; }
+    if (!r.ok) { alert(j.error || MC.t('No se pudo subir el archivo')); return null; }
     await cargarBiblioteca();
     return j.url;
   }
@@ -632,6 +632,13 @@
     const fila = (titulo, control) => { const l = MC.el('label', 'control'); const n = MC.el('span', 'control-nombre', titulo); l.append(n, control); return { l, n }; };
     const guardar = cambios => { Object.assign(config.dock, cambios); aplicarDock(); clearTimeout(guardados.dock); guardados.dock = setTimeout(() => MC.orden('config', { dock: config.dock }), 120); };
 
+    // Idioma de la app (y de lo que ven los espectadores en los overlays).
+    const idiomaSel = MC.el('select');
+    for (const [v, n] of [['auto', 'Automático'], ['es', 'Español'], ['en', 'English']]) { const o = MC.el('option', null, n); o.value = v; idiomaSel.append(o); }
+    idiomaSel.value = config.idioma || 'auto';
+    idiomaSel.onchange = () => MC.orden('config', { idioma: idiomaSel.value });
+    panel.append(fila('Idioma', idiomaSel).l);
+
     const tam = MC.el('input');
     Object.assign(tam, { type: 'range', min: 11, max: 26, step: 1, value: d.tamano });
     const t1 = fila('Tamaño de letra', tam);
@@ -679,7 +686,16 @@
     a.append(MC.el('i', `ico ico-marca-${icono}`), MC.el('span', null, nombre));
     return a;
   }));
-  for (const [boton, dialogo] of [['boton-acerca', 'dialogo-acerca'], ['boton-ayuda', 'dialogo-ayuda']]) $(boton).onclick = () => $(dialogo).showModal();
+  // La Ayuda en inglés va completa en una plantilla (frases largas con negritas: se lee mejor que traducida a trozos).
+  $('boton-ayuda').onclick = () => {
+    if (MC.idioma === 'en' && !$('dialogo-ayuda').dataset.en) {
+      $('dialogo-ayuda').replaceChildren($('ayuda-en').content.cloneNode(true));
+      $('dialogo-ayuda').dataset.en = '1';
+      for (const b of $('dialogo-ayuda').querySelectorAll('[data-cerrar]')) b.onclick = () => $('dialogo-ayuda').close();
+    }
+    $('dialogo-ayuda').showModal();
+  };
+  $('boton-acerca').onclick = () => $('dialogo-acerca').showModal();
   for (const b of document.querySelectorAll('[data-cerrar]')) b.onclick = () => b.closest('dialog').close();
   // Clic fuera del contenido: cerrar.
   for (const d of document.querySelectorAll('dialog')) d.addEventListener('click', e => { if (e.target === d) d.close(); });
@@ -738,7 +754,7 @@
         dibujarCuentas();
       });
     },
-    aviso(e) { codigoTwitch = null; alert(e.texto); },
+    aviso(e) { codigoTwitch = null; alert(MC.t(e.texto)); },
     'prueba-auto'(e) { mostrarAuto(e); },
     actualizacion(e) { mostrarActualizacion(e); },
   });

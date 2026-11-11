@@ -4,7 +4,7 @@
 
 Chat unificado para directos: junta en una sola ventana los chats de **Twitch, YouTube, TikTok y Kick** y los muestra en OBS con un overlay de chat y otro de alertas que se configuran sin escribir código.
 
-*Unified live chat for Twitch, YouTube, TikTok and Kick, with a moderation dock, a chat overlay and an alerts overlay for OBS. No code, no URL parameters. Windows; Spanish interface (English coming soon).*
+*Unified live chat for Twitch, YouTube, TikTok and Kick, with a moderation dock, a chat overlay and an alerts overlay for OBS. No code, no URL parameters. Windows; Spanish and English interface.*
 
 ## Apoya el proyecto
 
@@ -28,7 +28,7 @@ El programa no tiene firma digital, así que Windows puede mostrar un aviso: pul
 3. **Personaliza** en el editor de la derecha, con vista previa al momento: estilos rápidos, colores, temas de color para los nombres, fuentes, disposición, filtros, y alertas con tus propios sonidos, imágenes, GIF o vídeos.
 4. **Prueba** sin estar en directo con los botones de Probar o el envío automático de mensajes.
 
-El botón **?** del dock tiene una guía rápida y los problemas frecuentes.
+El botón **?** del dock tiene una guía rápida y los problemas frecuentes. El botón **Aa** cambia el idioma (español o inglés; en automático, el de Windows), que también se aplica a los textos que ven tus espectadores en los overlays.
 
 ## Principios
 
