@@ -131,6 +131,7 @@
     'Pon en OBS la fuente de navegador con este mismo tamaño (normalmente el de tu escena).': 'Give the OBS browser source this same size (usually your scene size).',
     'Vertical 450 × 800': 'Vertical 450 × 800', 'Columna en escena 1080p': 'Column in a 1080p scene', 'Banda inferior 1080p': 'Bottom band 1080p',
     'Esquina derecha 1080p': 'Right corner 1080p', 'Pantalla completa 1080p': 'Full screen 1080p',
+    'Líneas por mensaje': 'Lines per message', 'Los mensajes más largos se cortan; haz clic en uno para verlo entero.': 'Longer messages are trimmed; click one to see it in full.',
     'El puerto 7390 está ocupado. ¿MTv MultiChat ya está abierto (quizá con iniciar.bat)?': 'Port 7390 is in use. Is MTv MultiChat already open (maybe with iniciar.bat)?',
   };
 

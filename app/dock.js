@@ -200,6 +200,14 @@
     acciones.append(b1, b2);
     nodo.append(acciones);
     if (animar) nodo.classList.add('nuevo');
+    // Clic en un mensaje cortado: se despliega entero (otro clic lo vuelve a plegar). Los botones no cuentan.
+    nodo.addEventListener('click', e => {
+      if (e.target.closest('button, a') || !(nodo.classList.contains('cortado') || nodo.classList.contains('expandido'))) return;
+      nodo.classList.toggle('expandido');
+      if (!nodo.classList.contains('expandido')) marcarCortado(nodo);
+      else nodo.classList.remove('cortado');
+    });
+    requestAnimationFrame(() => marcarCortado(nodo));
     nodo.hidden = !pasaFiltro(m);
     feed.append(nodo);
     while (feed.children.length > LIMITE_FEED) feed.firstChild.remove();
@@ -685,6 +693,16 @@
   let escritorio = false;
   function aplicarDock() {
     document.documentElement.style.setProperty('--tam-dock', `${config.dock?.tamano || 15}px`);
+    const lineas = Number(config.dock?.lineas ?? 3);
+    document.documentElement.style.setProperty('--lineas-dock', String(lineas || 'none'));
+    feed.classList.toggle('con-limite', lineas > 0);
+    for (const n of feed.children) marcarCortado(n);
+  }
+  // "ver más" solo en los mensajes que de verdad no caben.
+  function marcarCortado(nodo) {
+    const linea = nodo.querySelector('.linea');
+    if (!linea || nodo.classList.contains('expandido')) return;
+    nodo.classList.toggle('cortado', feed.classList.contains('con-limite') && linea.scrollHeight > linea.clientHeight + 2);
   }
   function dibujarAjustesDock() {
     const panel = $('panel-dock');
@@ -707,6 +725,16 @@
     t1.n.append(o1);
     tam.oninput = () => { o1.textContent = `${tam.value} px`; guardar({ tamano: Number(tam.value) }); };
     panel.append(t1.l);
+
+    const lin = MC.el('input');
+    Object.assign(lin, { type: 'range', min: 0, max: 10, step: 1, value: d.lineas ?? 3 });
+    const etiquetaLineas = v => (Number(v) ? `${v} ${Number(v) === 1 ? 'línea' : 'líneas'}` : 'sin límite');
+    const tl = fila('Líneas por mensaje', lin);
+    const ol = MC.el('output', null, etiquetaLineas(lin.value));
+    tl.n.append(ol);
+    lin.oninput = () => { ol.textContent = etiquetaLineas(lin.value); guardar({ lineas: Number(lin.value) }); };
+    panel.append(tl.l);
+    panel.append(MC.el('p', 'ayuda', 'Los mensajes más largos se cortan; haz clic en uno para verlo entero.'));
 
     if (escritorio) {
       const op = MC.el('input');

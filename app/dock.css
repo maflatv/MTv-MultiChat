@@ -230,3 +230,17 @@ a.boton:hover { border-color: var(--acento); }
 .ico-marca-instagram { --icono: url(/iconos/instagram.svg); }
 .ico-marca-tiktok { --icono: url(/iconos/tiktok.svg); }
 .ico-marca-kofi { --icono: url(/iconos/kofi.svg); }
+
+/* Mensajes largos en el dock: límite de líneas, "ver más" y nada que ensanche la columna */
+#feed { overflow-x: hidden; }
+#feed .msg { min-width: 0; max-width: 100%; }
+#feed .linea { overflow-wrap: anywhere; word-break: break-word; }
+#feed.con-limite .msg:not(.expandido) .linea { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: var(--lineas-dock); line-clamp: var(--lineas-dock); overflow: hidden; }
+#feed .msg.cortado, #feed .msg.expandido { cursor: pointer; }
+#feed .msg.cortado::after { content: 'ver más'; display: inline-block; margin-top: 2px; font-size: 11px; color: var(--acento); }
+#feed .msg.expandido::after { content: 'ver menos'; display: inline-block; margin-top: 2px; font-size: 11px; color: var(--suave); }
+#feed .emote { max-height: 2.2em; }
+#feed .sticker { max-height: 3.5em; max-width: 100%; }
+#feed img { max-width: 100%; }
+html[lang="en"] #feed .msg.cortado::after { content: 'show more'; }
+html[lang="en"] #feed .msg.expandido::after { content: 'show less'; }
