@@ -56,7 +56,7 @@ Requiere Node 22 o posterior. La app no tiene dependencias; Electron y las herra
 iniciar.bat                    servidor y dock en el navegador
 escritorio.bat                 app de escritorio (Electron)
 npm test                       pruebas
-node build/build-exe.js 1.0.0  instalador, portable y zip en dist/
+node build/build-exe.js 1.1.0  instalador, portable y zip en dist/
 ```
 
 Los cinco archivos de `dist/` (`MTv-MultiChat-Setup-X.Y.Z.exe`, su `.blockmap`, `latest.yml`, `MTv-MultiChat.exe` y el `.zip`) van en la release vX.Y.Z de GitHub. Sin `latest.yml` las versiones instaladas no se enteran de la nueva.
