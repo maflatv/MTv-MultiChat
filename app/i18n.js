@@ -21,7 +21,7 @@
     'Canal': 'Channel', 'Canal o enlace del directo': 'Channel or stream link', 'Usuario de TikTok': 'TikTok username',
     'Pon tu canal: se conectará solo cada vez que empieces un directo.': 'Enter your channel: it will connect by itself every time you go live.',
     'Solo en la app de escritorio. Pon tu usuario: se conectará solo al empezar el directo.': 'Desktop app only. Enter your username: it will connect by itself when you go live.',
-    'Desactivado': 'Off', 'Conectado': 'Connected', 'Reconectando': 'Reconnecting', 'Esperando directo': 'Waiting for stream', 'Error': 'Error', 'Próximamente': 'Coming soon',
+    'Desactivado': 'Off', 'Conectado': 'Connected', 'Reconectando': 'Reconnecting', 'Esperando directo': 'Waiting for stream', 'Error': 'Error', 'Revisar': 'Check', 'Próximamente': 'Coming soon',
     'Desconectar': 'Disconnect', 'Conectar': 'Connect', 'Con mi cuenta': 'With my account', 'Sin cuenta': 'Without account',
     'Solo en la app de escritorio: abre el chat de Kick en una ventana oculta. Trae chat, subs, regalos y raids (sin follows).': 'Desktop app only: opens Kick chat in a hidden window. Brings chat, subs, gifts and raids (no follows).',
     'Falta la dirección del servidor puente de Kick.': 'The Kick bridge server address is missing.', 'Iniciar sesión con Kick': 'Log in with Kick', 'Cerrar sesión': 'Log out',
@@ -133,6 +133,17 @@
     'Esquina derecha 1080p': 'Right corner 1080p', 'Pantalla completa 1080p': 'Full screen 1080p',
     'Líneas por mensaje': 'Lines per message', 'Los mensajes más largos se cortan; haz clic en uno para verlo entero.': 'Longer messages are trimmed; click one to see it in full.',
     'El puerto 7390 está ocupado. ¿MTv MultiChat ya está abierto (quizá con iniciar.bat)?': 'Port 7390 is in use. Is MTv MultiChat already open (maybe with iniciar.bat)?',
+
+    // ---------- Lectura en voz alta ----------
+    'Voz': 'Voice', 'Lectura en voz alta': 'Text-to-speech', 'Saltar lo que se está leyendo': 'Skip what is being read', 'Leer en voz alta': 'Read aloud',
+    'Lo lee esta ventana con las voces de Windows y suena por los altavoces del PC. Tu público lo oye si OBS captura el audio del escritorio.': 'This window reads it with the Windows voices and it plays through your PC speakers. Your audience hears it if OBS captures desktop audio.',
+    'Velocidad': 'Speed', 'Tono': 'Pitch', 'Qué se lee': 'What is read', 'Mensajes del chat': 'Chat messages', 'De quién': 'From whom', 'De todos': 'Everyone',
+    'Subs, miembros, VIP y mods': 'Subs, members, VIPs and mods', 'Solo mods': 'Mods only', 'Decir quién lo escribe': 'Say who wrote it',
+    'Leer el mensaje que acompaña a donaciones y subs': 'Read the message that comes with donations and subs', 'No leer comandos (!algo)': "Don't read commands (!something)",
+    'Enlaces': 'Links', 'Decir "enlace"': 'Say "link"', 'Quitarlos': 'Remove them', 'Cortar a partir de': 'Cut after', 'Mensajes en espera como máximo': 'Max messages waiting',
+    'Con mucho chat, los que sobran no se leen. Los eventos siempre se leen.': "With a busy chat, the extra ones aren't read. Events are always read.",
+    'No leer nunca a (separados por comas)': 'Never read (comma-separated)', 'Predeterminada': 'Default', 'Escuchar la voz': 'Listen to the voice',
+    'No se encontraron voces en este equipo.': 'No voices were found on this computer.', 'Este navegador no puede leer en voz alta.': "This browser can't read aloud.",
   };
 
   // [expresión, reemplazo en inglés]. Se prueban en orden; la primera que encaja gana.
@@ -183,6 +194,8 @@
     [/^Twitch: (.+)$/, (m, t) => `Twitch: ${traducir(t, 'en')}`],
     [/^(.+) · (\d+) espectadores$/, '$1 · $2 viewers'],
     [/^Sesión iniciada como (.+)$/, 'Logged in as $1'],
+    [/^(Twitch|YouTube|TikTok|Kick) envía datos que MTv MultiChat no entiende\. Puede que haya cambiado: busca una actualización\.$/, "$1 is sending data MTv MultiChat doesn't understand. It may have changed: look for an update."],
+    [/^(Twitch|YouTube|TikTok|Kick) se reconectó tras (\d+) (s|min) sin conexión: puede faltar algún mensaje$/, '$1 reconnected after $2 $3 offline: some messages may be missing'],
   ];
 
   function traducir(texto, idioma) {

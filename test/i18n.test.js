@@ -14,6 +14,8 @@ test('textos y patrones con datos', () => {
   assert.equal(en('Raid de Ana con 42 espectadores'), 'Raid from Ana with 42 viewers');
   assert.equal(en('Nombre de canal no válido. Reintento en 8 s'), 'Invalid channel name. Retrying in 8 s');
   assert.equal(en('Hay una versión nueva: 1.2.0.'), 'A new version is available: 1.2.0.');
+  assert.equal(en('Twitch se reconectó tras 12 s sin conexión: puede faltar algún mensaje'), 'Twitch reconnected after 12 s offline: some messages may be missing');
+  assert.equal(en('TikTok envía datos que MTv MultiChat no entiende. Puede que haya cambiado: busca una actualización.'), "TikTok is sending data MTv MultiChat doesn't understand. It may have changed: look for an update.");
   // En español no cambia nada, y lo desconocido (lo que escribe un espectador) tampoco.
   assert.equal(I18N.traducir('Conectar', 'es'), 'Conectar');
   assert.equal(en('hola, ¿qué tal?'), 'hola, ¿qué tal?');

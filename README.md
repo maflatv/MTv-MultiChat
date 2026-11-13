@@ -26,7 +26,8 @@ El programa no tiene firma digital, así que Windows puede mostrar un aviso: pul
    - Chat: `http://localhost:7390/overlay` (recomendado 450 × 800)
    - Alertas: `http://localhost:7390/alertas` (1920 × 1080; activa "Controlar audio mediante OBS")
 3. **Personaliza** en el editor de la derecha, con vista previa al momento: estilos rápidos, colores, temas de color para los nombres, fuentes, disposición, filtros, y alertas con tus propios sonidos, imágenes, GIF o vídeos.
-4. **Prueba** sin estar en directo con los botones de Probar o el envío automático de mensajes.
+4. **Lectura en voz alta** (pestaña Voz): lee el chat y los eventos con las voces de Windows, con filtros por tipo, rol, importe mínimo, comandos y enlaces. Suena por los altavoces del PC; OBS la recoge con el audio del escritorio.
+5. **Prueba** sin estar en directo con los botones de Probar o el envío automático de mensajes.
 
 El botón **?** del dock tiene una guía rápida y los problemas frecuentes. El botón **Aa** cambia el idioma (español o inglés; en automático, el de Windows), que también se aplica a los textos que ven tus espectadores en los overlays.
 
@@ -73,6 +74,7 @@ lib/medios.js                    sonidos e imágenes propios de las alertas
 lib/emotes.js                    emotes de 7TV, BTTV y FFZ por plataforma
 lib/moneda.js                    importes escritos → número, moneda y equivalente aproximado en USD
 lib/prueba.js                    mensajes de prueba y envío automático
+lib/voz.js                       qué se lee en voz alta y cómo se limpia el texto
 lib/conectores/                  Twitch, YouTube, Kick y TikTok
 app/                             dock, overlays de chat y alertas, iconos, sonidos de serie y marca
 puente-kick/                     servidor puente de Kick (Cloudflare Worker), aparte de la app

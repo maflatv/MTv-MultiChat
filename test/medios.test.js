@@ -41,6 +41,15 @@ test('servidor: subir, servir y proteger los archivos', async () => {
     const descarga = await fetch(base + info.url);
     assert.equal(descarga.headers.get('content-type'), 'image/gif');
     assert.equal(Buffer.from(await descarga.arrayBuffer()).toString(), 'GIF89a-prueba');
+    // Rangos (los vídeos y audios de las alertas los necesitan para reproducirse, repetirse y saltar).
+    assert.equal(descarga.headers.get('accept-ranges'), 'bytes');
+    const trozo = await fetch(base + info.url, { headers: { Range: 'bytes=3-5' } });
+    assert.equal(trozo.status, 206);
+    assert.equal(trozo.headers.get('content-range'), 'bytes 3-5/13');
+    assert.equal(await trozo.text(), '89a');
+    assert.equal(await (await fetch(base + info.url, { headers: { Range: 'bytes=7-' } })).text(), 'prueba');
+    assert.equal(await (await fetch(base + info.url, { headers: { Range: 'bytes=-6' } })).text(), 'prueba');
+    assert.equal((await fetch(base + info.url, { headers: { Range: 'bytes=50-' } })).status, 416);
     assert.equal((await (await fetch(`${base}/api/medios`)).json()).length, 1);
     assert.equal((await fetch(`${base}/medios/..%2Fconfig.json`)).status, 404);
     const malo = await fetch(`${base}/api/medios`, { method: 'POST', headers: { 'X-MultiChat': '1', 'X-Nombre': 'x.html' }, body: '<script>' });

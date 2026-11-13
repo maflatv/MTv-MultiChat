@@ -14,6 +14,8 @@
   <div class="cabecera-der">
     <div id="servidor" class="chip">Conectando…</div>
     <button id="aviso-actualizacion" class="principal" hidden></button>
+    <button id="saltar-voz" class="con-icono" title="Saltar lo que se está leyendo" hidden><i class="ico ico-voz-saltar"></i><span class="cuantos"></span></button>
+    <button id="boton-voz" class="con-icono" title="Lectura en voz alta"><i class="ico ico-voz"></i></button>
     <a id="boton-kofi" class="boton kofi con-icono" href="https://ko-fi.com/maflatv" target="_blank" rel="noopener" title="Apoya el proyecto en Ko-fi"><i class="ico ico-marca-kofi"></i><span>Apoyar</span></a>
     <button id="boton-ayuda" class="con-icono" title="Ayuda"><b>?</b></button>
     <button id="boton-acerca" class="con-icono" title="Acerca de MTv MultiChat"><b>i</b></button>
@@ -65,6 +67,7 @@
     <div class="pestanas">
       <button class="activo" data-pestana="chat">Chat</button>
       <button data-pestana="alertas">Alertas</button>
+      <button data-pestana="voz">Voz</button>
     </div>
     <div class="url">
       <code id="url-overlay"></code>
@@ -122,6 +125,7 @@
     <li>Prueba los <b>estilos rápidos</b> y luego ajusta colores, texto y disposición. La vista previa cambia al momento.</li>
     <li>En <b>Alertas</b> puedes subir tus propios sonidos, imágenes, GIF o vídeos, y elegir uno distinto por tipo de alerta.</li>
     <li>Usa <b>Probar</b> (izquierda) o el <b>envío automático</b> para ver cómo queda sin estar en directo.</li>
+    <li>En <b>Voz</b> activa la lectura en voz alta: elige la voz y qué se lee (chat, donaciones, subs...). El altavoz de la cabecera la activa o la silencia, y el botón de al lado salta lo que se está leyendo. Suena por los altavoces del PC: tu público la oye si OBS captura el audio del escritorio.</li>
   </ul>
   <h3>4. En directo</h3>
   <ul>
@@ -158,6 +162,7 @@
     <li>Try the <b>quick styles</b>, then adjust colours, text and layout. The preview updates instantly.</li>
     <li>In <b>Alerts</b> you can upload your own sounds, images, GIFs or videos, and pick a different one per alert type.</li>
     <li>Use <b>Test</b> (left) or <b>automatic sending</b> to see how it looks without going live.</li>
+    <li>In <b>Voice</b> turn on text-to-speech: pick the voice and what is read (chat, donations, subs...). The speaker in the header turns it on or mutes it, and the button next to it skips what is being read. It plays through your PC speakers: your audience hears it if OBS captures desktop audio.</li>
   </ul>
   <h3>4. While live</h3>
   <ul>

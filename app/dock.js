@@ -16,7 +16,7 @@
     { id: 'tiktok', campo: 'canal', etiqueta: 'Usuario de TikTok', ejemplo: '@tuusuario', limpiar: v => v.replace(/^https?:\/\/(www\.)?tiktok\.com\//i, '').replace(/[/?#].*$/, '').replace(/^@/, ''), ayuda: 'Solo en la app de escritorio. Pon tu usuario: se conectará solo al empezar el directo.', login: true },
     { id: 'kick', campo: 'canal', etiqueta: 'Canal', ejemplo: 'nombre_del_canal', limpiar: v => v.replace(/^https?:\/\/(www\.)?kick\.com\//i, '').replace(/[/?#].*$/, ''), modos: true },
   ];
-  const TEXTO_ESTADO = { parado: 'Desactivado', conectando: 'Conectando…', conectado: 'Conectado', reconectando: 'Reconectando', esperando: 'Esperando directo', error: 'Error' };
+  const TEXTO_ESTADO = { parado: 'Desactivado', conectando: 'Conectando…', conectado: 'Conectado', reconectando: 'Reconectando', esperando: 'Esperando directo', revisar: 'Revisar', error: 'Error' };
 
   const guardarCuenta = async (id, cambios) => { config = await MC.orden('config', { cuentas: { [id]: cambios } }); dibujarCuentas(); };
 
@@ -216,8 +216,26 @@
     else if (!nodo.hidden) $('nuevos').hidden = false;
   }
 
+  // Una plataforma volvió tras un corte: lo que se escribió mientras tanto no llegó. Se marca en el chat del dock
+  // (no en el overlay) para que el streamer sepa que puede faltar algo.
+  function anadirHueco(e) {
+    const seguir = abajoDelTodo();
+    const s = Math.max(1, Math.round((e.hasta - e.desde) / 1000));
+    const dur = s < 90 ? `${s} s` : `${Math.round(s / 60)} min`;
+    const nombre = MC.PLATAFORMAS[e.plataforma]?.nombre || e.plataforma;
+    const nodo = MC.el('div', 'hueco');
+    nodo.append(
+      MC.el('time', 'hora', new Date(e.hasta).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })),
+      MC.el('span', null, `${nombre} se reconectó tras ${dur} sin conexión: puede faltar algún mensaje`),
+    );
+    feed.append(nodo);
+    while (feed.children.length > LIMITE_FEED) feed.firstChild.remove();
+    if (seguir) feed.scrollTop = feed.scrollHeight;
+  }
+
   function refiltrar() {
-    for (const n of feed.children) n.hidden = !pasaFiltro(n._m);
+    // Las marcas de hueco (sin _m) se ven siempre.
+    for (const n of feed.children) n.hidden = n._m ? !pasaFiltro(n._m) : false;
     feed.scrollTop = feed.scrollHeight;
   }
 
@@ -398,6 +416,37 @@
         { k: 'plantillas.raid', t: 'Raid', tipo: 'texto', ejemplo: '¡Raid de {nombre} con {cantidad}!' },
       ],
     },
+    // Lectura en voz alta: no es un overlay, así que no lleva URL ni vista previa.
+    voz: {
+      seccion: 'voz',
+      ayuda: 'Lo lee esta ventana con las voces de Windows y suena por los altavoces del PC. Tu público lo oye si OBS captura el audio del escritorio.',
+      controles: [
+        { titulo: 'Voz', abierto: true },
+        { k: 'activa', t: 'Leer en voz alta', tipo: 'si' },
+        { k: 'voz', t: 'Voz', tipo: 'voz' },
+        { k: 'velocidad', t: 'Velocidad', tipo: 'rango', min: 0.5, max: 2, paso: 0.05, mostrar: v => `${Math.round(v * 100) / 100}×` },
+        { k: 'tono', t: 'Tono', tipo: 'rango', min: 0.5, max: 1.5, paso: 0.05, mostrar: v => `${Math.round(v * 100) / 100}×` },
+        { k: 'volumen', t: 'Volumen', tipo: 'rango', min: 0, max: 1, paso: 0.05, u: '%', mostrar: v => Math.round(v * 100) },
+        { titulo: 'Qué se lee', abierto: true },
+        { k: 'mensajes', t: 'Mensajes del chat', tipo: 'si', probar: 'mensaje' },
+        { k: 'quienes', t: 'De quién', tipo: 'opciones', op: [['todos', 'De todos'], ['subs', 'Subs, miembros, VIP y mods'], ['mods', 'Solo mods']] },
+        { k: 'leerNombre', t: 'Decir quién lo escribe', tipo: 'si' },
+        { k: 'eventos.donacion', t: 'Donaciones, bits, regalos y KICKs', tipo: 'si', probar: 'donacion' },
+        { k: 'eventos.suscripcion', t: 'Suscripciones y miembros', tipo: 'si', probar: 'suscripcion' },
+        { k: 'eventos.regalo_subs', t: 'Subs regalados', tipo: 'si', probar: 'regalo_subs' },
+        { k: 'eventos.raid', t: 'Raids', tipo: 'si', probar: 'raid' },
+        { k: 'eventos.follow', t: 'Follows', tipo: 'si', probar: 'follow' },
+        { k: 'eventos.aviso', t: 'Canjes de puntos', tipo: 'si' },
+        { k: 'leerMensajeEventos', t: 'Leer el mensaje que acompaña a donaciones y subs', tipo: 'si' },
+        { k: 'minimoUsd', t: 'Donación mínima', tipo: 'rango', min: 0, max: 50, paso: 1, mostrar: v => (v ? `${v} USD aprox.` : 'todas') },
+        { titulo: 'Filtros' },
+        { k: 'saltarComandos', t: 'No leer comandos (!algo)', tipo: 'si' },
+        { k: 'enlaces', t: 'Enlaces', tipo: 'opciones', op: [['decir', 'Decir "enlace"'], ['quitar', 'Quitarlos']] },
+        { k: 'maxLetras', t: 'Cortar a partir de', tipo: 'rango', min: 50, max: 500, paso: 10, mostrar: v => `${v} letras` },
+        { k: 'cola', t: 'Mensajes en espera como máximo', tipo: 'rango', min: 1, max: 30, paso: 1, ayuda: 'Con mucho chat, los que sobran no se leen. Los eventos siempre se leen.' },
+        { k: 'ignorar', t: 'No leer nunca a (separados por comas)', tipo: 'texto', ejemplo: 'nightbot, usuario_pesado' },
+      ],
+    },
   };
   let pestana = 'chat';
 
@@ -419,7 +468,10 @@
     const p = PESTANAS[pestana];
     const datos = config[p.seccion];
     document.querySelectorAll('[data-pestana]').forEach(b => b.classList.toggle('activo', b.dataset.pestana === pestana));
-    const url = `${window.location.origin}${p.ruta}`;
+    // La pestaña Voz no es un overlay: sin URL ni vista previa.
+    document.querySelector('#editor .url').hidden = !p.ruta;
+    $('vista-caja').hidden = !p.ruta;
+    const url = `${window.location.origin}${p.ruta || ''}`;
     $('url-overlay').textContent = url;
     $('copiar').onclick = async () => {
       await navigator.clipboard.writeText(url);
@@ -427,9 +479,11 @@
       setTimeout(() => { $('copiar').querySelector('span').textContent = 'Copiar'; }, 1500);
     };
     $('ayuda-obs').textContent = p.ayuda;
-    const vista = `${p.ruta}?vista=1`;
-    if ($('vista').getAttribute('src') !== vista) $('vista').src = vista;
-    ajustarVista();
+    if (p.ruta) {
+      const vista = `${p.ruta}?vista=1`;
+      if ($('vista').getAttribute('src') !== vista) $('vista').src = vista;
+      ajustarVista();
+    }
 
     const form = $('form-overlay');
     form.replaceChildren();
@@ -491,6 +545,7 @@
         r.oninput = () => { const n = Number(r.value); valor.textContent = etiqueta(n); poner(c.invertir ? Math.round((1 - n) * 100) / 100 : n); };
         nombre.append(valor);
         fila.append(r);
+        if (typeof c.ayuda === 'string') fila.append(MC.el('span', 'ayuda', c.ayuda));
       } else if (c.tipo === 'paleta') {
         // Temas de color con sus muestras.
         const lista = MC.el('span', 'paletas');
@@ -552,6 +607,29 @@
         sel.value = v;
         sel.onchange = () => poner(sel.value);
         fila.append(sel);
+      } else if (c.tipo === 'voz') {
+        // Voces de Windows; primero las del idioma de la app.
+        const sel = MC.el('select');
+        const pred = MC.el('option', null, 'Predeterminada');
+        pred.value = '';
+        sel.append(pred);
+        const voces = lectura.voces();
+        const delIdioma = x => x.lang.toLowerCase().startsWith(MC.idioma);
+        for (const vz of [...voces.filter(delIdioma), ...voces.filter(x => !delIdioma(x))]) {
+          const o = MC.el('option', null, `${vz.name} (${vz.lang})`);
+          o.value = vz.name;
+          sel.append(o);
+        }
+        sel.value = voces.some(x => x.name === v) ? v : '';
+        sel.onchange = () => poner(sel.value);
+        const b = MC.el('button', 'probar', 'Probar');
+        b.type = 'button';
+        b.title = 'Escuchar la voz';
+        b.onclick = e => { e.preventDefault(); lectura.probar(MC.idioma === 'en' ? 'Hi, this is how chat reading will sound on your stream.' : 'Hola, así sonará la lectura del chat en tu directo.'); };
+        const caja = MC.el('span', 'voz-elegir');
+        caja.append(sel, b);
+        fila.append(caja);
+        if (!voces.length) fila.append(MC.el('span', 'ayuda', 'No se encontraron voces en este equipo.'));
       } else if (c.tipo === 'sonido' || c.tipo === 'medio') {
         fila.classList.add('c-archivo');
         fila.append(controlArchivo(c, v, poner));
@@ -582,7 +660,7 @@
   // La vista previa se dibuja al tamaño de la fuente de OBS y se reduce para caber: así se ve igual que en OBS.
   function ajustarVista() {
     const datos = config?.[PESTANAS[pestana].seccion];
-    if (!datos) return;
+    if (!datos || !PESTANAS[pestana].ruta) return;
     const w = Number(datos.fuenteAncho) || (pestana === 'chat' ? 450 : 1920);
     const h = Number(datos.fuenteAlto) || (pestana === 'chat' ? 800 : 1080);
     const caja = $('vista-caja');
@@ -814,6 +892,88 @@
   }
   fetch('/api/info').then(r => r.json()).then(i => { $('version').textContent = i.version; mostrarActualizacion(i.actualizacion); }).catch(() => {});
 
+  // ---------- Lectura en voz alta ----------
+  // El servidor decide qué se lee y manda la frase ya preparada ('decir'); aquí se pone en cola y se lee con las voces
+  // de Windows. Un mensaje que se oculta o que borra un moderador sale de la cola (y se corta si se está leyendo).
+  const lectura = (() => {
+    const sintesis = window.speechSynthesis || null;
+    const cola = [];
+    let actual = null;
+    let vigia = null;
+    const ajustes = () => config?.voz || {};
+    const voces = () => (sintesis ? sintesis.getVoices() : []);
+    function vozElegida() {
+      const lista = voces();
+      return lista.find(x => x.name === ajustes().voz) || lista.find(x => x.lang.toLowerCase().startsWith(MC.idioma)) || null;
+    }
+    function hablar(texto, alTerminar) {
+      const a = ajustes();
+      const u = new SpeechSynthesisUtterance(texto);
+      const vz = vozElegida();
+      if (vz) { u.voice = vz; u.lang = vz.lang; } else u.lang = MC.idioma === 'en' ? 'en-US' : 'es-ES';
+      u.rate = Number(a.velocidad) || 1;
+      u.pitch = Number(a.tono) || 1;
+      u.volume = a.volumen ?? 0.8;
+      let hecho = false;
+      const fin = () => { if (hecho) return; hecho = true; clearTimeout(vigia); alTerminar(); };
+      u.onend = fin;
+      u.onerror = fin;
+      // A veces Chromium no avisa del final: se da por terminado tras un tiempo razonable para su largo.
+      clearTimeout(vigia);
+      vigia = setTimeout(() => { sintesis.cancel(); fin(); }, 4000 + texto.length * 120 / u.rate);
+      sintesis.speak(u);
+    }
+    function mostrar() {
+      const b = $('saltar-voz');
+      b.hidden = !actual;
+      b.querySelector('.cuantos').textContent = cola.length ? `+${cola.length}` : '';
+      $('boton-voz').classList.toggle('activo', !!ajustes().activa);
+    }
+    function siguiente() {
+      if (actual || !cola.length) return mostrar();
+      actual = cola.shift();
+      mostrar();
+      hablar(actual.texto, () => { actual = null; siguiente(); });
+    }
+    return {
+      voces,
+      mostrar,
+      encolar(e) {
+        if (!sintesis || !ajustes().activa) return;
+        // Con mucho chat no se acumula retraso: los mensajes que sobran se descartan; los eventos nunca.
+        if (e.tipo === 'mensaje' && cola.filter(x => x.tipo === 'mensaje').length >= (Number(ajustes().cola) || 8)) return;
+        cola.push(e);
+        siguiente();
+      },
+      quitar(ids) {
+        for (let i = cola.length - 1; i >= 0; i--) if (ids.includes(cola[i].id)) cola.splice(i, 1);
+        if (actual && ids.includes(actual.id)) sintesis.cancel();
+        mostrar();
+      },
+      saltar() { if (sintesis && actual) sintesis.cancel(); },
+      vaciar() { cola.length = 0; if (sintesis && actual) sintesis.cancel(); mostrar(); },
+      probar(texto) {
+        if (!sintesis) { alert(MC.t('Este navegador no puede leer en voz alta.')); return; }
+        cola.length = 0;
+        sintesis.cancel();
+        actual = { id: 'prueba-voz', tipo: 'prueba', texto };
+        mostrar();
+        hablar(texto, () => { actual = null; siguiente(); });
+      },
+    };
+  })();
+  if (window.speechSynthesis) window.speechSynthesis.onvoiceschanged = () => { if (pestana === 'voz' && config?.voz) dibujarEditor(); };
+  $('saltar-voz').onclick = () => lectura.saltar();
+  // Activar o silenciar desde la cabecera (se guarda). Al silenciar se corta lo que esté sonando.
+  $('boton-voz').onclick = () => {
+    if (!config?.voz) return;
+    config.voz.activa = !config.voz.activa;
+    if (!config.voz.activa) lectura.vaciar();
+    lectura.mostrar();
+    MC.orden('config', { voz: config.voz });
+    if (pestana === 'voz') dibujarEditor();
+  };
+
   // ---------- Conexión con el servidor ----------
 
   MC.conectar({
@@ -824,7 +984,7 @@
       conexiones = e.conexiones;
       escritorio = !!e.escritorio;
       if (e.pruebaAuto) mostrarAuto(e.pruebaAuto);
-      fetch('/api/config').then(r => r.json()).then(c => { config = c; aplicarDock(); dibujarCuentas(); dibujarEditor(); });
+      fetch('/api/config').then(r => r.json()).then(c => { config = c; aplicarDock(); dibujarCuentas(); dibujarEditor(); lectura.mostrar(); });
       feed.replaceChildren();
       for (const m of e.historial) anadir(m, { animar: false });
       marcarOcultos(e.ocultos);
@@ -832,7 +992,15 @@
       $('vacio').hidden = e.historial.length > 0;
     },
     mensaje(e) { anadir(e.m); },
-    borrar(e) { marcarOcultos(e.ids); },
+    hueco(e) { anadirHueco(e); },
+    borrar(e) { marcarOcultos(e.ids); lectura.quitar(e.ids); },
+    decir(e) { lectura.encolar(e); },
+    voz(e) {
+      if (!config) return;
+      config.voz = e.voz;
+      if (!e.voz.activa) lectura.vaciar();
+      lectura.mostrar();
+    },
     destacar(e) { marcarDestacado(e.m); },
     conexiones(e) { conexiones = e.lista; if (config?.cuentas) dibujarCuentas(); },
     // Tras iniciar o cerrar sesión con Kick en otra pestaña.
@@ -846,5 +1014,5 @@
     aviso(e) { codigoTwitch = null; alert(MC.t(e.texto)); },
     'prueba-auto'(e) { mostrarAuto(e); },
     actualizacion(e) { mostrarActualizacion(e); },
-  });
+  }, { lector: true });
 })();

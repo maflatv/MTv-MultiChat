@@ -15,7 +15,11 @@ const ICONO = path.join(RAIZ, 'build', 'icon.ico');
 app.setPath('userData', path.join(DATOS, 'chromium'));
 app.setAppUserModelId('io.github.maflatv.mtvmultichat');
 
-if (!app.requestSingleInstanceLock()) app.quit();
+// Una sola instancia: si ya hay una abierta, esta se cierra sin tocar nada (la otra trae su ventana al frente).
+// app.quit() no detiene el código que sigue, así que whenReady también lo comprueba: si no, la segunda
+// instancia intentaría abrir el servidor y mostraría el error de "puerto ocupado".
+const UNICA = app.requestSingleInstanceLock();
+if (!UNICA) app.quit();
 
 let dock = null;
 let servidor = null;
@@ -94,7 +98,8 @@ function abrirDock(puerto) {
     width: medidas.width, height: medidas.height, x: medidas.x, y: medidas.y,
     minWidth: 900, minHeight: 520, title: `MTv MultiChat ${VERSION}`, icon: ICONO,
     backgroundColor: '#0E0B16', autoHideMenuBar: true,
-    webPreferences: { sandbox: true, contextIsolation: true, nodeIntegration: false },
+    // La lectura en voz alta y los sonidos deben funcionar sin que haya que tocar antes la ventana.
+    webPreferences: { sandbox: true, contextIsolation: true, nodeIntegration: false, autoplayPolicy: 'no-user-gesture-required' },
   });
   if (medidas.maximizada) dock.maximize();
   dock.on('close', guardarMedidas);
@@ -114,6 +119,7 @@ function abrirDock(puerto) {
 app.on('second-instance', () => { if (dock) { if (dock.isMinimized()) dock.restore(); dock.focus(); } });
 
 app.whenReady().then(async () => {
+  if (!UNICA) return;
   // Transparencia de la ventana del dock y "siempre encima", para ver el chat sobre el juego.
   const ajustarVentana = op => {
     if (!dock) return;

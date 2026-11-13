@@ -13,6 +13,7 @@ const kick = require('./lib/conectores/kick.js');
 const twitchCuenta = require('./lib/conectores/twitch-cuenta.js');
 const { mensajePrueba, PruebaAuto } = require('./lib/prueba.js');
 const { Medios } = require('./lib/medios.js');
+const { fraseParaLeer } = require('./lib/voz.js');
 const { VERSION } = require('./lib/runtime.js');
 const I18N = require('./app/i18n.js');
 
@@ -39,6 +40,18 @@ function crearServidor({ datos = path.join(__dirname, 'userdata'), extras = {} }
   const estadoConexiones = () => Object.values(conectores).map(c => c.estado);
 
   bus.on('evento', difundir);
+
+  // Lectura en voz alta: la hace una sola página (si no, se oiría dos veces). Se prefiere la ventana de la app
+  // de escritorio; si no está, el dock abierto hace más tiempo (navegador o panel de OBS).
+  const lectores = new Map(); // res → { escritorio, desde }
+  const lector = () => [...lectores].sort(([, a], [, b]) => (b.escritorio - a.escritorio) || (a.desde - b.desde))[0]?.[0] || null;
+  bus.on('evento', e => {
+    if (e.ev !== 'mensaje') return;
+    const res = lector();
+    if (!res) return;
+    const texto = fraseParaLeer(e.m, config.datos.voz, { idioma: idioma(), overlay: config.datos.overlay });
+    if (texto) enviar(res, { ev: 'decir', id: e.m.id, tipo: e.m.tipo, texto });
+  });
   const pruebaAuto = new PruebaAuto(tipo => bus.mensaje(mensajePrueba(tipo, idioma())));
   // Actualizaciones (solo en la app de escritorio instalada): cada cambio de estado llega al dock.
   if (extras.actualizacion) extras.actualizacion.alCambiar = estado => difundir({ ev: 'actualizacion', ...estado });
@@ -113,6 +126,7 @@ function crearServidor({ datos = path.join(__dirname, 'userdata'), extras = {} }
       if (cuerpo.cuentas) aplicarCuentas();
       if (cuerpo.overlay) difundir({ ev: 'overlay', overlay: config.datos.overlay });
       if (cuerpo.alertas) difundir({ ev: 'alertas', alertas: config.datos.alertas });
+      if (cuerpo.voz) difundir({ ev: 'voz', voz: config.datos.voz });
       if (cuerpo.dock) extras.ajustarVentana?.(config.datos.dock);
       // Cambio de idioma: las páginas se recargan para aplicarlo.
       if ('idioma' in cuerpo) difundir({ ev: 'idioma', idioma: idioma() });
@@ -225,10 +239,11 @@ function crearServidor({ datos = path.join(__dirname, 'userdata'), extras = {} }
     if (url.pathname === '/api/eventos') {
       res.writeHead(200, { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-store', Connection: 'keep-alive' });
       res.write('retry: 2000\n\n');
-      enviar(res, { ev: 'inicio', ...bus.estado(), overlay: config.datos.overlay, alertas: config.datos.alertas, conexiones: estadoConexiones(), escritorio: !!extras.ajustarVentana, pruebaAuto: pruebaAuto.estado, idioma: idioma(), idiomaElegido: config.datos.idioma });
+      enviar(res, { ev: 'inicio', ...bus.estado(), overlay: config.datos.overlay, alertas: config.datos.alertas, voz: config.datos.voz, conexiones: estadoConexiones(), escritorio: !!extras.ajustarVentana, pruebaAuto: pruebaAuto.estado, idioma: idioma(), idiomaElegido: config.datos.idioma });
       clientes.add(res);
+      if (url.searchParams.get('lector') === '1') lectores.set(res, { escritorio: /Electron\//.test(req.headers['user-agent'] || '') ? 1 : 0, desde: Date.now() });
       const latido = setInterval(() => res.write(': latido\n\n'), 20_000);
-      req.on('close', () => { clearInterval(latido); clientes.delete(res); });
+      req.on('close', () => { clearInterval(latido); clientes.delete(res); lectores.delete(res); });
       return;
     }
     if (url.pathname === '/api/config' && req.method === 'GET') return json(res, 200, config.publica());
@@ -245,7 +260,18 @@ function crearServidor({ datos = path.join(__dirname, 'userdata'), extras = {} }
     if (url.pathname.startsWith('/medios/')) {
       const ruta = medios.ruta(decodeURIComponent(url.pathname.slice(8)));
       if (!ruta) { res.writeHead(404); return res.end(); }
-      res.writeHead(200, { 'Content-Type': medios.mime(ruta), 'Cache-Control': 'max-age=3600' });
+      // Con rangos (206): Chromium y OBS los piden para reproducir, repetir y saltar en vídeos y audios.
+      const total = fs.statSync(ruta).size;
+      const cabeceras = { 'Content-Type': medios.mime(ruta), 'Cache-Control': 'max-age=3600', 'Accept-Ranges': 'bytes' };
+      const rango = /^bytes=(\d*)-(\d*)$/.exec(req.headers.range || '');
+      if (rango && (rango[1] || rango[2])) {
+        const ini = rango[1] ? Number(rango[1]) : Math.max(0, total - Number(rango[2]));
+        const fin = rango[1] && rango[2] ? Math.min(Number(rango[2]), total - 1) : total - 1;
+        if (ini >= total || ini > fin) { res.writeHead(416, { 'Content-Range': `bytes */${total}` }); return res.end(); }
+        res.writeHead(206, { ...cabeceras, 'Content-Range': `bytes ${ini}-${fin}/${total}`, 'Content-Length': fin - ini + 1 });
+        return fs.createReadStream(ruta, { start: ini, end: fin }).pipe(res);
+      }
+      res.writeHead(200, { ...cabeceras, 'Content-Length': total });
       return fs.createReadStream(ruta).pipe(res);
     }
     if (url.pathname === '/kick/login') return kickLogin(res, url, req);

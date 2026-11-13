@@ -15,8 +15,9 @@ function aplicarIdioma(nuevo) {
 }
 
 // Conexión en tiempo real con el servidor. EventSource se reconecta solo si el servidor se reinicia.
-function conectar(manejadores) {
-  const es = new EventSource('/api/eventos');
+// lector: esta página puede leer en voz alta (el dock). El servidor elige una sola para que no se oiga dos veces.
+function conectar(manejadores, { lector = false } = {}) {
+  const es = new EventSource(lector ? '/api/eventos?lector=1' : '/api/eventos');
   es.onmessage = e => {
     const evento = JSON.parse(e.data);
     // El idioma va primero, para que todo lo que se dibuje después salga ya traducido.
