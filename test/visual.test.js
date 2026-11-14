@@ -116,3 +116,14 @@ test('colocar el chat dentro de la fuente: tamaño, anclaje y margen', () => {
   MC.colocar(caja, { ancho: 0, alto: 0, anclaje: 'centro-centro', margen: 50 });
   assert.deepEqual([caja.style.left, caja.style.right, caja.style.top, caja.style.bottom, caja.style.width, caja.style.transform], ['0', '0', '0', '0', '', '']);
 });
+
+test('perfiles: qué mensajes pasa el filtro de un perfil', () => {
+  const filtro = { twitch: { mensaje: true, follow: false }, tiktok: { donacion: false } };
+  assert.equal(MC.pasaPerfil({ plataforma: 'twitch', tipo: 'mensaje' }, filtro), true);
+  assert.equal(MC.pasaPerfil({ plataforma: 'twitch', tipo: 'follow' }, filtro), false);
+  assert.equal(MC.pasaPerfil({ plataforma: 'tiktok', tipo: 'donacion' }, filtro), false);
+  assert.equal(MC.pasaPerfil({ plataforma: 'tiktok', tipo: 'follow' }, filtro), true, 'lo que no está marcado como no, sale');
+  assert.equal(MC.pasaPerfil({ plataforma: 'kick', tipo: 'raid' }, null), true, 'sin perfil sale todo');
+  assert.equal(MC.elegirPerfil([{ id: 'principal' }, { id: 'tiktok' }], 'tiktok').id, 'tiktok');
+  assert.equal(MC.elegirPerfil([{ id: 'principal' }], 'borrado').id, 'principal', 'un perfil borrado vuelve al Principal');
+});

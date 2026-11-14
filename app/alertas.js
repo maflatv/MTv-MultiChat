@@ -5,6 +5,9 @@
   const escena = document.getElementById('escena');
   const enVista = new URLSearchParams(window.location.search).has('vista');
   let op = null;
+  // Perfil de esta fuente (?perfil=<id>): su apariencia y qué plataformas y tipos avisa.
+  const perfilId = MC.perfilDeUrl();
+  let filtro = null;
   const cola = [];
   let actual = null;
   let audio = null;
@@ -29,7 +32,7 @@
     const i = m.importe;
     if (!i) return '';
     if (i.texto) return i.texto;
-    const nombres = { BITS: 'bits', KICKS: 'KICKs', MONEDAS: 'monedas' };
+    const nombres = { BITS: 'bits', KICKS: 'KICKs', MONEDAS: i.valor === 1 ? 'moneda' : 'monedas' };
     return nombres[i.moneda] ? `${i.valor} ${nombres[i.moneda]}` : `${i.valor} ${i.moneda}`;
   }
 
@@ -46,7 +49,7 @@
     return m.titulo || nombre;
   }
 
-  const pasa = m => m.tipo !== 'mensaje' && op.tipos?.[m.tipo] && !(m.tipo === 'donacion' && m.importe?.usd != null && m.importe.usd < op.minimoUsd);
+  const pasa = m => m.tipo !== 'mensaje' && MC.pasaPerfil(m, filtro) && op.tipos?.[m.tipo] && !(m.tipo === 'donacion' && m.importe?.usd != null && m.importe.usd < op.minimoUsd);
 
   function encolar(m) {
     if (!op || !pasa(m)) return;
@@ -136,7 +139,9 @@
 
   MC.conectar({
     inicio(e) {
-      aplicar(e.alertas);
+      const p = MC.elegirPerfil(e.perfiles, perfilId);
+      filtro = p?.filtro || null;
+      aplicar(p?.alertas || e.alertas);
       if (enVista) muestra();
     },
     mensaje(e) { encolar(e.m); },
@@ -144,8 +149,12 @@
       // Un moderador borró el mensaje: si aún no ha salido, no sale.
       for (let i = cola.length - 1; i >= 0; i--) if (e.ids.includes(cola[i].id)) cola.splice(i, 1);
     },
-    alertas(e) {
-      aplicar(e.alertas);
+    perfiles(e) {
+      const p = MC.elegirPerfil(e.perfiles, perfilId);
+      if (!p) return;
+      filtro = p.filtro;
+      for (let i = cola.length - 1; i >= 0; i--) if (!MC.pasaPerfil(cola[i], filtro)) cola.splice(i, 1);
+      aplicar(p.alertas);
       if (enVista) { cola.length = 0; actual = null; muestra(); }
     },
   });

@@ -307,4 +307,19 @@ function dibujarMensaje(m, op = {}) {
   return caja;
 }
 
-window.MC = { colocar, idioma: 'es', t, aplicarIdioma, TEMAS_NOMBRES, colorDeTema, largoMensaje, luminancia, PLATAFORMAS, FUENTES_GOOGLE, conectar, orden, el, iconoPlataforma, insigniaPropia, dibujarMensaje, cargarFuente, rgb, ETIQUETA_TIPO };
+// Perfiles de chat: qué tipos de cada plataforma salen. Lo que no está en el filtro (p. ej. mensajes de
+// prueba de una plataforma nueva) sale siempre.
+const pasaPerfil = (m, filtro) => !filtro || filtro[m.plataforma]?.[m.tipo] !== false;
+// Tipos que de verdad manda cada plataforma (el resto se muestra como «—» en el editor).
+const TIPOS_PERFIL = [['mensaje', 'Mensajes'], ['follow', 'Follows'], ['donacion', 'Donaciones'], ['suscripcion', 'Subs'], ['regalo_subs', 'Subs regalados'], ['raid', 'Raids'], ['aviso', 'Canjes']];
+const EXISTE_EN = {
+  twitch: ['mensaje', 'follow', 'donacion', 'suscripcion', 'regalo_subs', 'raid', 'aviso'],
+  youtube: ['mensaje', 'donacion', 'suscripcion', 'regalo_subs'],
+  tiktok: ['mensaje', 'follow', 'donacion', 'suscripcion'],
+  kick: ['mensaje', 'follow', 'donacion', 'suscripcion', 'regalo_subs', 'raid', 'aviso'],
+};
+// El perfil de una página (?perfil=<id>); sin parámetro, el Principal. Si se borra, vuelve al Principal.
+const perfilDeUrl = () => new URLSearchParams(window.location.search).get('perfil') || 'principal';
+const elegirPerfil = (lista, id) => (lista || []).find(p => p.id === id) || (lista || [])[0] || null;
+
+window.MC = { pasaPerfil, TIPOS_PERFIL, EXISTE_EN, perfilDeUrl, elegirPerfil, colocar, idioma: 'es', t, aplicarIdioma, TEMAS_NOMBRES, colorDeTema, largoMensaje, luminancia, PLATAFORMAS, FUENTES_GOOGLE, conectar, orden, el, iconoPlataforma, insigniaPropia, dibujarMensaje, cargarFuente, rgb, ETIQUETA_TIPO };

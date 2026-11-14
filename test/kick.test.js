@@ -70,6 +70,29 @@ test('ventana: mensajes de la conexión de chat de la web de Kick', () => {
   assert.deepEqual([raid.tipo, raid.cantidad], ['raid', 40]);
   assert.equal(kick.interpretarPusher('pusher:pong', {}), null);
   assert.equal(kick.interpretarPusher('App\\Events\\ChatMessageEvent', null), null);
+  const f = kick.interpretarPusher('App\\Events\\FollowersUpdated', { followersCount: 10, channel_id: 1, username: 'Nuevo', followed: true }).mensaje;
+  assert.deepEqual([f.tipo, f.titulo], ['follow', 'Nuevo te sigue']);
+  assert.equal(kick.interpretarPusher('App\\Events\\FollowersUpdated', { followersCount: 9, followed: false }), null);
+});
+
+// Tramas reales de kick.com (14/11/2026), cuando Kick pasó de Pusher a Centrifugo.
+test('ventana: tramas de Centrifugo (varias por trama) y de Pusher', () => {
+  const conexion = '{"id":1,"connect":{"client":"7cfa472b","version":"6.9.7 PRO","expires":true,"ttl":2699,"ping":25,"pong":true}}\n{"id":2,"subscribe":{}}\n{"id":3,"subscribe":{}}';
+  assert.deepEqual(kick.eventosDeTrama(conexion), { suscrito: true, eventos: [], malas: 0 });
+  assert.deepEqual(kick.eventosDeTrama('{}'), { suscrito: false, eventos: [], malas: 0 });
+  const datos = JSON.stringify({ id: '7c75a233', chatroom_id: 669512, content: 'hola', type: 'message', created_at: '2026-11-14T20:18:39+00:00', sender: { id: 35955608, username: 'AlpFox', slug: 'alpfox', identity: { color: '#72ACED', badges: [] } } });
+  const push = JSON.stringify({ push: { channel: 'chatrooms.669512.v2', pub: { data: { event: 'App\\Events\\ChatMessageEvent', data: datos } } } });
+  const sub = JSON.stringify({ push: { channel: 'chatrooms.669512.v2', pub: { data: { event: 'App\\Events\\SubscriptionEvent', data: '{"chatroom_id":669512,"username":"DriblingAdc","months":1}' } } } });
+  const r = kick.eventosDeTrama(`${push}\n${sub}`);
+  assert.equal(r.eventos.length, 2);
+  assert.equal(r.eventos[0].channel, 'chatrooms.669512.v2');
+  assert.equal(kick.interpretarPusher(r.eventos[0].event, JSON.parse(r.eventos[0].data)).mensaje.autor.nombre, 'AlpFox');
+  assert.equal(kick.interpretarPusher(r.eventos[1].event, JSON.parse(r.eventos[1].data)).mensaje.titulo, 'DriblingAdc se ha suscrito');
+  // Formato anterior (Pusher), por si Kick vuelve a él.
+  assert.equal(kick.eventosDeTrama('{"event":"pusher_internal:subscription_succeeded","channel":"chatrooms.668.v2","data":"{}"}').suscrito, true);
+  assert.equal(kick.eventosDeTrama(JSON.stringify({ event: 'App\\Events\\ChatMessageEvent', channel: 'chatrooms.668.v2', data: datos })).eventos.length, 1);
+  assert.equal(kick.eventosDeTrama('{"event":"pusher:pong","data":"{}"}').eventos.length, 0);
+  assert.equal(kick.eventosDeTrama('{roto').malas, 1);
 });
 
 test('PKCE y URL de inicio de sesión', () => {

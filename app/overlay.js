@@ -7,6 +7,9 @@
   // ?vista=1: la vista previa del dock, con mensajes de muestra si aún no hay ninguno.
   const enVista = new URLSearchParams(window.location.search).has('vista');
   let op = {};
+  // Perfil de esta fuente (?perfil=<id>): su apariencia y qué plataformas y tipos muestra.
+  const perfilId = MC.perfilDeUrl();
+  let filtro = null;
   const temporizadores = new Map();
 
   function aplicar(nueva) {
@@ -41,7 +44,7 @@
   const esComando = m => op.ocultarComandos && m.tipo === 'mensaje' && /^\s*!/.test(m.texto || '');
   // Mensajes de chat demasiado largos (copypastas, spam): no se muestran. Los eventos siempre salen.
   const esLargo = m => op.ocultarLargos > 0 && m.tipo === 'mensaje' && MC.largoMensaje(m) > op.ocultarLargos;
-  const visible = m => !(m.tipo !== 'mensaje' && !op.eventos) && !(op.soloEventos && m.tipo === 'mensaje') && !esBot(m) && !esComando(m) && !esLargo(m);
+  const visible = m => MC.pasaPerfil(m, filtro) && !(m.tipo !== 'mensaje' && !op.eventos) && !(op.soloEventos && m.tipo === 'mensaje') && !esBot(m) && !esComando(m) && !esLargo(m);
 
   function quitar(nodo) {
     clearTimeout(temporizadores.get(nodo));
@@ -79,6 +82,7 @@
   function anadir(m) {
     if (!visible(m)) return;
     const nodo = MC.dibujarMensaje(acortar(m), op);
+    nodo._m = m;
     // Agrupar: si la persona anterior es la misma, no se repiten nombre ni iconos.
     const vecino = op.alinear === 'arriba' ? chat.querySelector('.msg:not(.saliendo)') : [...chat.querySelectorAll('.msg:not(.saliendo)')].at(-1);
     if (op.agrupar && vecino?._autor && m.tipo === 'mensaje' && vecino._autor === `${m.plataforma}:${m.autor.id || m.autor.nombre}`) nodo.classList.add('seguido');
@@ -96,7 +100,9 @@
 
   MC.conectar({
     inicio(e) {
-      aplicar(e.overlay);
+      const p = MC.elegirPerfil(e.perfiles, perfilId);
+      filtro = p?.filtro || null;
+      aplicar(p?.overlay || e.overlay);
       chat.replaceChildren();
       const ocultos = new Set(e.ocultos);
       // Al recargar la fuente en OBS se recuperan los últimos mensajes, sin temporizador de salida.
@@ -112,10 +118,14 @@
       for (const id of e.ids) chat.querySelectorAll(`.msg[data-id="${CSS.escape(id)}"]`).forEach(quitar);
     },
     destacar(e) { mostrarDestacado(e.m); },
-    overlay(e) {
-      aplicar(e.overlay);
-      // En la vista previa se redibuja todo para ver el cambio al momento.
-      if (enVista) { chat.replaceChildren(); muestras(); }
+    perfiles(e) {
+      const p = MC.elegirPerfil(e.perfiles, perfilId);
+      if (!p) return;
+      filtro = p.filtro;
+      aplicar(p.overlay);
+      // En la vista previa se redibuja todo para ver el cambio al momento. En OBS solo se quitan
+      // los mensajes que este perfil ya no muestra.
+      if (enVista) { chat.replaceChildren(); muestras(); } else chat.querySelectorAll('.msg').forEach(n => { if (n._m && !MC.pasaPerfil(n._m, filtro)) quitar(n); });
     },
   });
 

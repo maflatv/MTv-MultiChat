@@ -5,6 +5,7 @@
   color-scheme: dark;
 }
 * { box-sizing: border-box; }
+[hidden] { display: none !important; }
 html, body { margin: 0; height: 100%; }
 body { background: var(--bg); color: var(--texto); font: 14px/1.4 "Segoe UI", system-ui, sans-serif; display: flex; flex-direction: column; }
 button { font: inherit; color: inherit; background: var(--panel2); border: 1px solid var(--borde); border-radius: 6px; padding: 5px 10px; cursor: pointer; }
@@ -23,7 +24,7 @@ h1 b { color: var(--acento); }
 .chip.ok { color: var(--ok); }
 .chip.mal { color: #fff; background: var(--mal); }
 
-main { flex: 1; display: grid; grid-template-columns: 250px 1fr 340px; min-height: 0; }
+main { flex: 1; display: grid; grid-template-columns: 250px 1fr 340px; grid-template-rows: minmax(0, 1fr); min-height: 0; }
 aside { background: var(--panel); padding: 14px; overflow-y: auto; }
 #cuentas { border-right: 1px solid var(--borde); }
 #editor { border-left: 1px solid var(--borde); }
@@ -58,7 +59,7 @@ button.enlace { background: none; border: 0; padding: 4px 0 0; color: var(--suav
 .botones-prueba button { font-size: 12px; }
 
 /* Chat */
-#centro { position: relative; display: flex; flex-direction: column; min-width: 0; }
+#centro { position: relative; display: flex; flex-direction: column; min-width: 0; min-height: 0; }
 #filtros { display: flex; align-items: center; gap: 6px; padding: 8px 12px; border-bottom: 1px solid var(--borde); }
 #filtros .sep { width: 1px; height: 20px; background: var(--borde); }
 #filtros-plataforma { display: flex; gap: 4px; }
@@ -82,7 +83,6 @@ button.enlace { background: none; border: 0; padding: 4px 0 0; color: var(--suav
 .acciones { position: absolute; right: 8px; top: 3px; display: none; gap: 2px; }
 #feed .msg:hover .acciones { display: flex; }
 .acciones button { padding: 1px 6px; font-size: 12px; }
-#nuevos { position: absolute; bottom: 14px; left: 50%; transform: translateX(-50%); background: var(--acento); color: var(--sobre-acento); border: 0; border-radius: 99px; padding: 6px 14px; box-shadow: 0 4px 14px rgba(0, 0, 0, .4); }
 #vacio { position: absolute; inset: 50px 0 0; display: grid; place-content: center; text-align: center; color: var(--suave); pointer-events: none; }
 #vacio p { margin: 2px; }
 
@@ -116,7 +116,7 @@ button.enlace { background: none; border: 0; padding: 4px 0 0; color: var(--suav
 .segmentos button:last-child { border-radius: 0 6px 6px 0; }
 .segmentos button.activo { background: var(--acento); border-color: var(--acento); color: var(--sobre-acento); }
 
-@media (max-width: 1050px) { main { grid-template-columns: 220px 1fr; } #editor { grid-column: 1 / -1; border-left: 0; border-top: 1px solid var(--borde); } }
+@media (max-width: 1050px) { main { grid-template-columns: 220px 1fr; grid-template-rows: minmax(0, 1fr) minmax(0, 45%); } #editor { grid-column: 1 / -1; border-left: 0; border-top: 1px solid var(--borde); } }
 
 /* Pestañas del editor y controles extra */
 .pestanas { display: flex; gap: 4px; margin-bottom: 10px; }
@@ -259,3 +259,26 @@ html[lang="en"] #feed .msg.expandido::after { content: 'show less'; }
 #saltar-voz .cuantos { font-size: 11px; color: var(--suave); }
 .voz-elegir { display: flex; gap: 6px; align-items: center; }
 .voz-elegir select { flex: 1; min-width: 0; }
+
+/* Perfiles de chat */
+#perfil-barra { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-bottom: 8px; }
+.perfil-elegir { display: flex; align-items: center; gap: 6px; flex: 1 1 100%; }
+.perfil-elegir span { color: var(--suave); font-size: 12px; }
+#perfil-barra select, #perfil-barra input, #ver-como { font: inherit; color: inherit; background: var(--bg); border: 1px solid var(--borde); border-radius: 6px; padding: 5px 8px; min-width: 0; }
+#perfil-sel { flex: 1; }
+#perfil-nombre { flex: 1 1 140px; }
+.perfil-botones { display: flex; gap: 6px; }
+button.peligro { background: var(--mal); border-color: var(--mal); color: #fff; }
+#perfil-que { margin-bottom: 10px; border: 1px solid var(--borde); border-radius: 8px; padding: 6px 8px; }
+#perfil-que summary { cursor: pointer; font-weight: 600; }
+#perfil-que .ayuda { margin: 6px 0; }
+.matriz { width: 100%; border-collapse: collapse; }
+.matriz th, .matriz td { padding: 2px 4px; text-align: center; }
+.matriz th:first-child { text-align: left; }
+.matriz button { background: none; border: 0; padding: 2px 4px; font-size: 12px; }
+.matriz button:hover { color: var(--acento); }
+.matriz .matriz-cab .plat { width: 18px; height: 18px; }
+.matriz input[type=checkbox] { width: 16px; height: 16px; accent-color: var(--acento); cursor: pointer; }
+.matriz .no-existe { color: var(--suave); opacity: .5; }
+.matriz tr:nth-child(even) td, .matriz tr:nth-child(even) th { background: rgba(255, 255, 255, .02); }
+#ver-como { padding: 3px 6px; max-width: 140px; }

@@ -60,6 +60,7 @@ function crearServidor({ datos = path.join(__dirname, 'userdata'), extras = {} }
   const T = texto => I18N.traducir(texto, idioma());
   const info = () => ({ version: VERSION, escritorio: !!extras.ajustarVentana, actualizacion: extras.actualizacion?.estado() || null });
   bus.on('conexion', () => difundir({ ev: 'conexiones', lista: estadoConexiones() }));
+  const difundirPerfiles = () => difundir({ ev: 'perfiles', perfiles: config.perfiles() });
 
   // La sesión de Kick se lee y se guarda aparte: renovar el token no debe reiniciar la conexión.
   const ctxKick = {
@@ -126,11 +127,30 @@ function crearServidor({ datos = path.join(__dirname, 'userdata'), extras = {} }
       if (cuerpo.cuentas) aplicarCuentas();
       if (cuerpo.overlay) difundir({ ev: 'overlay', overlay: config.datos.overlay });
       if (cuerpo.alertas) difundir({ ev: 'alertas', alertas: config.datos.alertas });
+      if (cuerpo.overlay || cuerpo.alertas || cuerpo.filtro) difundirPerfiles();
       if (cuerpo.voz) difundir({ ev: 'voz', voz: config.datos.voz });
       if (cuerpo.dock) extras.ajustarVentana?.(config.datos.dock);
       // Cambio de idioma: las páginas se recargan para aplicarlo.
       if ('idioma' in cuerpo) difundir({ ev: 'idioma', idioma: idioma() });
       return config.publica();
+    },
+    // Perfiles de chat: cada overlay y cada fuente de alertas elige el suyo con ?perfil=<id>.
+    async perfil({ id, nombre, overlay, alertas, filtro }) {
+      config.cambiarPerfil(String(id || ''), { nombre, overlay, alertas, filtro });
+      if (id === 'principal' && overlay) difundir({ ev: 'overlay', overlay: config.datos.overlay });
+      if (id === 'principal' && alertas) difundir({ ev: 'alertas', alertas: config.datos.alertas });
+      difundirPerfiles();
+      return { perfiles: config.perfiles() };
+    },
+    async 'perfil-crear'({ nombre, desde }) {
+      const id = config.crearPerfil({ nombre, desde });
+      difundirPerfiles();
+      return { id, perfiles: config.perfiles() };
+    },
+    async 'perfil-borrar'({ id }) {
+      config.borrarPerfil(String(id || ''));
+      difundirPerfiles();
+      return { perfiles: config.perfiles() };
     },
     async 'tiktok-login'() {
       if (!extras.abrirLoginTikTok) throw new Error('Solo en la app de escritorio');
@@ -239,7 +259,7 @@ function crearServidor({ datos = path.join(__dirname, 'userdata'), extras = {} }
     if (url.pathname === '/api/eventos') {
       res.writeHead(200, { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-store', Connection: 'keep-alive' });
       res.write('retry: 2000\n\n');
-      enviar(res, { ev: 'inicio', ...bus.estado(), overlay: config.datos.overlay, alertas: config.datos.alertas, voz: config.datos.voz, conexiones: estadoConexiones(), escritorio: !!extras.ajustarVentana, pruebaAuto: pruebaAuto.estado, idioma: idioma(), idiomaElegido: config.datos.idioma });
+      enviar(res, { ev: 'inicio', ...bus.estado(), overlay: config.datos.overlay, alertas: config.datos.alertas, perfiles: config.perfiles(), voz: config.datos.voz, conexiones: estadoConexiones(), escritorio: !!extras.ajustarVentana, pruebaAuto: pruebaAuto.estado, idioma: idioma(), idiomaElegido: config.datos.idioma });
       clientes.add(res);
       if (url.searchParams.get('lector') === '1') lectores.set(res, { escritorio: /Electron\//.test(req.headers['user-agent'] || '') ? 1 : 0, desde: Date.now() });
       const latido = setInterval(() => res.write(': latido\n\n'), 20_000);

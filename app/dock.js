@@ -6,6 +6,16 @@
   let config = null;
   let conexiones = [];
   const filtro = { tipo: 'todo', plataformas: new Set(), texto: '' };
+  // Perfiles de chat: el que se edita a la derecha y el que se usa para ver el chat ('' = todo).
+  let perfilEd = 'principal';
+  let verComo = '';
+  const perfilesTodos = () => (config ? [{ id: 'principal', nombre: 'Principal', overlay: config.overlay, alertas: config.alertas, filtro: config.filtro }, ...(config.perfiles || [])] : []);
+  const perfilPor = id => perfilesTodos().find(p => p.id === id) || null;
+  // Lo que edita cada pestaña: la apariencia del perfil elegido (la voz es una sola para todos).
+  const datosDe = seccion => (seccion === 'voz' ? config[seccion] : (perfilPor(perfilEd) || perfilPor('principal'))[seccion]);
+  const guardarSeccion = seccion => (seccion === 'voz' || perfilEd === 'principal'
+    ? MC.orden('config', { [seccion]: config[seccion] })
+    : MC.orden('perfil', { id: perfilEd, [seccion]: datosDe(seccion) }));
   const LIMITE_FEED = 500;
 
   // ---------- Plataformas ----------
@@ -172,16 +182,30 @@
   // ---------- Chat ----------
 
   function pasaFiltro(m) {
+    if (verComo && !MC.pasaPerfil(m, perfilPor(verComo)?.filtro)) return false;
     if (filtro.tipo === 'eventos' && m.tipo === 'mensaje') return false;
     if (filtro.plataformas.size && !filtro.plataformas.has(m.plataforma)) return false;
     if (filtro.texto && !`${m.autor.nombre} ${m.texto} ${m.titulo}`.toLowerCase().includes(filtro.texto)) return false;
     return true;
   }
 
-  const abajoDelTodo = () => feed.scrollHeight - feed.scrollTop - feed.clientHeight < 40;
+  // El chat del dock nunca crece más que la ventana: al entrar un mensaje nuevo se quitan los más antiguos
+  // que ya no caben, así siempre se ve lo último sin tener que bajar. Los ocultos por un filtro no ocupan
+  // sitio y se quedan (hasta LIMITE_FEED) para que al quitar el filtro vuelvan a verse.
+  function ajustar() {
+    let n = feed.firstElementChild;
+    while (n && n !== feed.lastElementChild && feed.scrollHeight > feed.clientHeight + 1) {
+      const sig = n.nextElementSibling;
+      if (!n.hidden) n.remove();
+      n = sig;
+    }
+    feed.scrollTop = feed.scrollHeight;
+  }
+  // Las imágenes (emotes, avatares, regalos) cargan después y estiran el mensaje.
+  feed.addEventListener('load', ajustar, true);
+  window.addEventListener('resize', ajustar);
 
   function anadir(m, { animar = true } = {}) {
-    const seguir = abajoDelTodo();
     const ov = config?.overlay || {};
     // En el dock (fondo oscuro) un color fijo o de plataforma se mantiene; el resto, con el tema elegido.
     const nodo = MC.dibujarMensaje(m, { colorNombre: ov.colorNombre, temaNombres: ov.temaNombres, nombreFijo: ov.nombreFijo });
@@ -207,19 +231,17 @@
       if (!nodo.classList.contains('expandido')) marcarCortado(nodo);
       else nodo.classList.remove('cortado');
     });
-    requestAnimationFrame(() => marcarCortado(nodo));
+    requestAnimationFrame(() => { marcarCortado(nodo); ajustar(); });
     nodo.hidden = !pasaFiltro(m);
     feed.append(nodo);
     while (feed.children.length > LIMITE_FEED) feed.firstChild.remove();
     $('vacio').hidden = true;
-    if (seguir) feed.scrollTop = feed.scrollHeight;
-    else if (!nodo.hidden) $('nuevos').hidden = false;
+    ajustar();
   }
 
   // Una plataforma volvió tras un corte: lo que se escribió mientras tanto no llegó. Se marca en el chat del dock
   // (no en el overlay) para que el streamer sepa que puede faltar algo.
   function anadirHueco(e) {
-    const seguir = abajoDelTodo();
     const s = Math.max(1, Math.round((e.hasta - e.desde) / 1000));
     const dur = s < 90 ? `${s} s` : `${Math.round(s / 60)} min`;
     const nombre = MC.PLATAFORMAS[e.plataforma]?.nombre || e.plataforma;
@@ -230,13 +252,13 @@
     );
     feed.append(nodo);
     while (feed.children.length > LIMITE_FEED) feed.firstChild.remove();
-    if (seguir) feed.scrollTop = feed.scrollHeight;
+    ajustar();
   }
 
   function refiltrar() {
     // Las marcas de hueco (sin _m) se ven siempre.
     for (const n of feed.children) n.hidden = n._m ? !pasaFiltro(n._m) : false;
-    feed.scrollTop = feed.scrollHeight;
+    ajustar();
   }
 
   function dibujarFiltrosPlataforma() {
@@ -263,8 +285,6 @@
     };
   }
   $('buscar').oninput = e => { filtro.texto = e.target.value.trim().toLowerCase(); refiltrar(); };
-  feed.onscroll = () => { if (abajoDelTodo()) $('nuevos').hidden = true; };
-  $('nuevos').onclick = () => { feed.scrollTop = feed.scrollHeight; $('nuevos').hidden = true; };
   for (const b of document.querySelectorAll('[data-prueba]')) b.onclick = () => MC.orden('prueba', { tipo: b.dataset.prueba });
 
   // Envío automático de pruebas (lo hace el servidor, así sigue aunque se cierre el dock).
@@ -459,19 +479,168 @@
 
   const guardados = {};
   function cambiar(seccion, ruta, v) {
-    ponerRuta(config[seccion], ruta, v);
+    ponerRuta(datosDe(seccion), ruta, v);
     clearTimeout(guardados[seccion]);
-    guardados[seccion] = setTimeout(() => MC.orden('config', { [seccion]: config[seccion] }), 150);
+    guardados[seccion] = setTimeout(() => guardarSeccion(seccion), 150);
+  }
+
+  // ---------- Perfiles de chat ----------
+
+  let borrarPendiente = false;
+  function dibujarPerfiles() {
+    const lista = perfilesTodos();
+    if (!perfilPor(perfilEd)) perfilEd = 'principal';
+    // La voz es una sola: en esa pestaña no hay perfiles.
+    const conPerfil = PESTANAS[pestana].seccion !== 'voz';
+    $('perfil-barra').hidden = !conPerfil;
+    $('perfil-que').hidden = !conPerfil;
+
+    const sel = $('perfil-sel');
+    sel.replaceChildren(...lista.map(p => { const o = MC.el('option', p.id === 'principal' ? null : 'no-traducir', p.id === 'principal' ? MC.t('Principal') : p.nombre); o.value = p.id; return o; }));
+    sel.value = perfilEd;
+    sel.onchange = () => { perfilEd = sel.value; borrarPendiente = false; dibujarEditor(); };
+
+    const actual = perfilPor(perfilEd);
+    const nombre = $('perfil-nombre');
+    nombre.hidden = perfilEd === 'principal';
+    if (document.activeElement !== nombre) nombre.value = actual.nombre;
+    nombre.onchange = async () => {
+      const r = await MC.orden('perfil', { id: perfilEd, nombre: nombre.value });
+      if (r?.perfiles) ponerPerfiles(r.perfiles);
+      dibujarPerfiles();
+      dibujarVerComo();
+    };
+
+    $('perfil-nuevo').onclick = async () => {
+      const r = await MC.orden('perfil-crear', { desde: perfilEd });
+      if (!r?.id) return;
+      ponerPerfiles(r.perfiles);
+      perfilEd = r.id;
+      borrarPendiente = false;
+      dibujarEditor();
+      dibujarVerComo();
+      $('perfil-nombre').focus();
+      $('perfil-nombre').select();
+    };
+
+    // Borrar pide un segundo clic (las ventanas de confirmación no funcionan en la app de escritorio).
+    const borrar = $('perfil-borrar');
+    borrar.hidden = perfilEd === 'principal';
+    borrar.querySelector('span').textContent = MC.t(borrarPendiente ? '¿Seguro?' : 'Borrar');
+    borrar.classList.toggle('peligro', borrarPendiente);
+    borrar.onclick = async () => {
+      if (!borrarPendiente) { borrarPendiente = true; dibujarPerfiles(); setTimeout(() => { if (borrarPendiente) { borrarPendiente = false; dibujarPerfiles(); } }, 4000); return; }
+      borrarPendiente = false;
+      const r = await MC.orden('perfil-borrar', { id: perfilEd });
+      if (r?.perfiles) ponerPerfiles(r.perfiles);
+      if (verComo === perfilEd) verComo = '';
+      perfilEd = 'principal';
+      dibujarEditor();
+      dibujarVerComo();
+      refiltrar();
+    };
+
+    dibujarMatriz(actual);
+  }
+
+  // Qué aparece: una casilla por tipo (filas) y plataforma (columnas). Clic en el nombre de una fila
+  // o en el logo de una columna marca o desmarca la fila o la columna entera.
+  function dibujarMatriz(perfil) {
+    const PLATS = ['twitch', 'youtube', 'tiktok', 'kick'];
+    const f = perfil.filtro;
+    const tabla = MC.el('table', 'matriz');
+    const guardar = () => {
+      clearTimeout(guardados.filtro);
+      guardados.filtro = setTimeout(async () => {
+        await MC.orden('perfil', { id: perfil.id, filtro: f });
+        if (verComo === perfil.id) refiltrar();
+      }, 150);
+      dibujarMatriz(perfil);
+    };
+    const existe = (pl, t) => MC.EXISTE_EN[pl].includes(t);
+    // También las casillas que la plataforma no envía, para que la fila o columna quede igual entera.
+    const marcar = (celdas, v) => { for (const [pl, t] of celdas) f[pl][t] = v; guardar(); };
+    const todasMarcadas = celdas => celdas.filter(([pl, t]) => existe(pl, t)).every(([pl, t]) => f[pl][t] !== false);
+
+    const cab = MC.el('tr');
+    cab.append(MC.el('th'));
+    for (const pl of PLATS) {
+      const th = MC.el('th');
+      const b = MC.el('button', 'matriz-cab');
+      b.type = 'button';
+      b.title = MC.PLATAFORMAS[pl].nombre;
+      b.append(MC.iconoPlataforma(pl));
+      const col = MC.TIPOS_PERFIL.map(([t]) => [pl, t]);
+      b.onclick = () => marcar(col, !todasMarcadas(col));
+      th.append(b);
+      cab.append(th);
+    }
+    tabla.append(cab);
+    for (const [t, etiqueta] of MC.TIPOS_PERFIL) {
+      const tr = MC.el('tr');
+      const th = MC.el('th');
+      const b = MC.el('button', 'matriz-fila', etiqueta);
+      b.type = 'button';
+      const fila = PLATS.map(pl => [pl, t]);
+      b.onclick = () => marcar(fila, !todasMarcadas(fila));
+      th.append(b);
+      tr.append(th);
+      for (const pl of PLATS) {
+        const td = MC.el('td');
+        if (!existe(pl, t)) {
+          td.append(MC.el('span', 'no-existe', '—'));
+          td.title = MC.t('Esta plataforma no lo envía');
+        } else {
+          const c = MC.el('input');
+          c.type = 'checkbox';
+          c.checked = f[pl][t] !== false;
+          c.title = `${MC.PLATAFORMAS[pl].nombre} · ${MC.t(etiqueta)}`;
+          c.onchange = () => { f[pl][t] = c.checked; guardar(); };
+          td.append(c);
+        }
+        tr.append(td);
+      }
+      tabla.append(tr);
+    }
+    $('matriz').replaceChildren(tabla);
+  }
+
+  // Cambios de perfiles hechos en otra ventana: se añaden los nuevos, se quitan los borrados y se actualizan
+  // nombres y filtros. La apariencia del perfil que se está editando aquí no se pisa.
+  function ponerPerfiles(lista) {
+    if (!config || !Array.isArray(lista)) return;
+    const principal = lista.find(p => p.id === 'principal');
+    if (principal) config.filtro = principal.filtro;
+    const antes = new Map((config.perfiles || []).map(p => [p.id, p]));
+    config.perfiles = lista.filter(p => p.id !== 'principal').map(p => {
+      const local = antes.get(p.id);
+      if (!local) return p;
+      local.nombre = p.nombre;
+      local.filtro = p.filtro;
+      return local;
+    });
+  }
+
+  // «Ver como» en el chat de la app: todo, o lo que muestra un perfil.
+  function dibujarVerComo() {
+    const sel = $('ver-como');
+    const opciones = [['', MC.t('Todo')], ...perfilesTodos().map(p => [p.id, p.id === 'principal' ? MC.t('Principal') : p.nombre])];
+    if (!perfilPor(verComo)) verComo = '';
+    sel.replaceChildren(...opciones.map(([v, t]) => { const o = MC.el('option', v && v !== 'principal' ? 'no-traducir' : null, t); o.value = v; return o; }));
+    sel.value = verComo;
+    sel.onchange = () => { verComo = sel.value; refiltrar(); };
   }
 
   function dibujarEditor() {
     const p = PESTANAS[pestana];
-    const datos = config[p.seccion];
+    const datos = datosDe(p.seccion);
+    dibujarPerfiles();
     document.querySelectorAll('[data-pestana]').forEach(b => b.classList.toggle('activo', b.dataset.pestana === pestana));
     // La pestaña Voz no es un overlay: sin URL ni vista previa.
     document.querySelector('#editor .url').hidden = !p.ruta;
     $('vista-caja').hidden = !p.ruta;
-    const url = `${window.location.origin}${p.ruta || ''}`;
+    const conPerfil = perfilEd === 'principal' ? '' : `perfil=${encodeURIComponent(perfilEd)}`;
+    const url = `${window.location.origin}${p.ruta || ''}${conPerfil ? `?${conPerfil}` : ''}`;
     $('url-overlay').textContent = url;
     $('copiar').onclick = async () => {
       await navigator.clipboard.writeText(url);
@@ -480,7 +649,7 @@
     };
     $('ayuda-obs').textContent = p.ayuda;
     if (p.ruta) {
-      const vista = `${p.ruta}?vista=1`;
+      const vista = `${p.ruta}?vista=1${conPerfil ? `&${conPerfil}` : ''}`;
       if ($('vista').getAttribute('src') !== vista) $('vista').src = vista;
       ajustarVista();
     }
@@ -494,7 +663,7 @@
       for (const [nombre, valores] of p.rapidos) {
         const b = MC.el('button', null, nombre);
         b.type = 'button';
-        b.onclick = () => { Object.assign(config[p.seccion], valores); MC.orden('config', { [p.seccion]: config[p.seccion] }); dibujarEditor(); };
+        b.onclick = () => { Object.assign(datosDe(p.seccion), valores); guardarSeccion(p.seccion); dibujarEditor(); };
         fila.append(b);
       }
       caja.append(fila);
@@ -574,7 +743,7 @@
         for (const [nombre, valores] of c.op) {
           const b = MC.el('button', null, nombre);
           b.type = 'button';
-          b.onclick = e => { e.preventDefault(); Object.assign(config[p.seccion], valores); MC.orden('config', { [p.seccion]: config[p.seccion] }); dibujarEditor(); };
+          b.onclick = e => { e.preventDefault(); Object.assign(datosDe(p.seccion), valores); guardarSeccion(p.seccion); dibujarEditor(); };
           g.append(b);
         }
         fila.append(g);
@@ -659,7 +828,7 @@
   }
   // La vista previa se dibuja al tamaño de la fuente de OBS y se reduce para caber: así se ve igual que en OBS.
   function ajustarVista() {
-    const datos = config?.[PESTANAS[pestana].seccion];
+    const datos = config && datosDe(PESTANAS[pestana].seccion);
     if (!datos || !PESTANAS[pestana].ruta) return;
     const w = Number(datos.fuenteAncho) || (pestana === 'chat' ? 450 : 1920);
     const h = Number(datos.fuenteAlto) || (pestana === 'chat' ? 800 : 1080);
@@ -732,7 +901,7 @@
         if (!/^\/(sonidos|medios)\//.test(sel.value)) return;
         reproduciendo?.pause();
         reproduciendo = new Audio(sel.value);
-        reproduciendo.volume = config.alertas.volumen ?? 0.6;
+        reproduciendo.volume = datosDe('alertas').volumen ?? 0.6;
         reproduciendo.play().catch(() => {});
       };
       botones.append(play);
@@ -775,6 +944,7 @@
     document.documentElement.style.setProperty('--lineas-dock', String(lineas || 'none'));
     feed.classList.toggle('con-limite', lineas > 0);
     for (const n of feed.children) marcarCortado(n);
+    ajustar();
   }
   // "ver más" solo en los mensajes que de verdad no caben.
   function marcarCortado(nodo) {
@@ -984,7 +1154,7 @@
       conexiones = e.conexiones;
       escritorio = !!e.escritorio;
       if (e.pruebaAuto) mostrarAuto(e.pruebaAuto);
-      fetch('/api/config').then(r => r.json()).then(c => { config = c; aplicarDock(); dibujarCuentas(); dibujarEditor(); lectura.mostrar(); });
+      fetch('/api/config').then(r => r.json()).then(c => { config = c; aplicarDock(); dibujarCuentas(); dibujarEditor(); dibujarVerComo(); lectura.mostrar(); });
       feed.replaceChildren();
       for (const m of e.historial) anadir(m, { animar: false });
       marcarOcultos(e.ocultos);
@@ -1002,6 +1172,13 @@
       lectura.mostrar();
     },
     destacar(e) { marcarDestacado(e.m); },
+    perfiles(e) {
+      if (!config) return;
+      ponerPerfiles(e.perfiles);
+      dibujarPerfiles();
+      dibujarVerComo();
+      if (verComo) refiltrar();
+    },
     conexiones(e) { conexiones = e.lista; if (config?.cuentas) dibujarCuentas(); },
     // Tras iniciar o cerrar sesión con Kick en otra pestaña.
     cuentas() {

@@ -52,10 +52,10 @@
       <button class="filtro" data-filtro="eventos">Eventos</button>
       <span class="sep"></span>
       <span id="filtros-plataforma"></span>
+      <select id="ver-como" title="Ver el chat como lo muestra un perfil"></select>
       <input id="buscar" type="search" placeholder="Buscar…">
     </div>
     <div id="feed" aria-live="polite"></div>
-    <button id="nuevos" hidden>Mensajes nuevos ↓</button>
     <div id="vacio">
       <p>Aún no hay mensajes.</p>
       <p class="ayuda">Activa una plataforma a la izquierda o envía un mensaje de prueba.</p>
@@ -69,6 +69,19 @@
       <button data-pestana="alertas">Alertas</button>
       <button data-pestana="voz">Voz</button>
     </div>
+    <div id="perfil-barra">
+      <label class="perfil-elegir"><span>Perfil</span> <select id="perfil-sel"></select></label>
+      <input id="perfil-nombre" type="text" maxlength="40" aria-label="Nombre del perfil" placeholder="Nombre del perfil">
+      <div class="perfil-botones">
+        <button id="perfil-nuevo" type="button" title="Nuevo perfil (copia del actual)">+ <span>Nuevo</span></button>
+        <button id="perfil-borrar" type="button" title="Borrar este perfil"><span>Borrar</span></button>
+      </div>
+    </div>
+    <details id="perfil-que" open>
+      <summary>Qué aparece en este perfil</summary>
+      <p class="ayuda">Vale para su chat y sus alertas. Cada perfil tiene su propia URL: pon una fuente de OBS por perfil para usar varios a la vez.</p>
+      <div id="matriz"></div>
+    </details>
     <div class="url">
       <code id="url-overlay"></code>
       <button id="copiar" class="con-icono"><i class="ico ico-copiar"></i><span>Copiar</span></button>
@@ -123,6 +136,7 @@
   <h3>3. Personaliza</h3>
   <ul>
     <li>Prueba los <b>estilos rápidos</b> y luego ajusta colores, texto y disposición. La vista previa cambia al momento.</li>
+    <li><b>Perfiles</b>: crea uno con <b>+ Nuevo</b> (copia del que tienes abierto), ponle nombre y marca en <b>Qué aparece</b> qué tipos salen de cada plataforma (por ejemplo, en la escena de TikTok solo los follows y regalos de TikTok). Cada perfil tiene su propio aspecto y su propia URL de chat y de alertas: añade una fuente de OBS por perfil para usar varios a la vez. En el chat de la app, <b>Ver como</b> lo muestra como lo ve un perfil.</li>
     <li>En <b>Alertas</b> puedes subir tus propios sonidos, imágenes, GIF o vídeos, y elegir uno distinto por tipo de alerta.</li>
     <li>Usa <b>Probar</b> (izquierda) o el <b>envío automático</b> para ver cómo queda sin estar en directo.</li>
     <li>En <b>Voz</b> activa la lectura en voz alta: elige la voz y qué se lee (chat, donaciones, subs...). El altavoz de la cabecera la activa o la silencia, y el botón de al lado salta lo que se está leyendo. Suena por los altavoces del PC: tu público la oye si OBS captura el audio del escritorio.</li>
@@ -160,6 +174,7 @@
   <h3>3. Customize</h3>
   <ul>
     <li>Try the <b>quick styles</b>, then adjust colours, text and layout. The preview updates instantly.</li>
+    <li><b>Profiles</b>: create one with <b>+ New</b> (a copy of the one you have open), name it and tick in <b>What shows</b> which types appear from each platform (for example, in the TikTok scene only TikTok follows and gifts). Each profile has its own look and its own chat and alerts URL: add one OBS source per profile to use several at once. In the app's chat, the profile picker next to the filters shows it the way a profile sees it.</li>
     <li>In <b>Alerts</b> you can upload your own sounds, images, GIFs or videos, and pick a different one per alert type.</li>
     <li>Use <b>Test</b> (left) or <b>automatic sending</b> to see how it looks without going live.</li>
     <li>In <b>Voice</b> turn on text-to-speech: pick the voice and what is read (chat, donations, subs...). The speaker in the header turns it on or mutes it, and the button next to it skips what is being read. It plays through your PC speakers: your audience hears it if OBS captures desktop audio.</li>

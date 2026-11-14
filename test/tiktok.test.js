@@ -63,11 +63,11 @@ test('regalos: los de racha solo cuentan al terminar, con monedas e imagen', () 
   assert.equal(tiktok.interpretar('WebcastGiftMessage', regalo(false, 1, 3)), null);
   const { mensaje: m } = tiktok.interpretar('WebcastGiftMessage', regalo(true, 1, 10));
   assert.equal(m.tipo, 'donacion');
-  assert.equal(m.titulo, 'Rose ×10');
+  assert.equal(m.titulo, 'Rose ×10 · 10 monedas');
   assert.deepEqual(m.importe, { valor: 10, moneda: 'MONEDAS', usd: 0.13 });
   assert.equal(m.imagen, 'https://p16.tiktokcdn.com/rosa.png');
   // Un regalo que no es de racha cuenta aunque no lleve fin.
-  assert.equal(tiktok.interpretar('WebcastGiftMessage', regalo(false, 2, 1)).mensaje.titulo, 'Rose');
+  assert.equal(tiktok.interpretar('WebcastGiftMessage', regalo(false, 2, 1)).mensaje.titulo, 'Rose · 1 moneda');
 });
 
 test('follow (y compartir se ignora), suscripción y espectadores', () => {
