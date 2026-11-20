@@ -81,3 +81,28 @@ test('lo que no es chat se ignora', () => {
   assert.equal(i(':tmi.twitch.tv 001 justinfan1 :Welcome, GLHF!'), null);
   assert.equal(i('@emote-only=0;room-id=1 :tmi.twitch.tv ROOMSTATE #c'), null);
 });
+
+test('espectadores de Twitch: Helix /streams da la cifra y, sin directo, se borra', async () => {
+  const { Twitch } = require('../lib/conectores/twitch.js');
+  const { Bus } = require('../lib/bus.js');
+  const c = new Twitch(new Bus(), { canal: 'luna' }, null);
+  c.idCanal = '42';
+  c.cambiar('conectado', '#luna');
+  let respuesta = { ok: true, cuerpo: { data: [{ viewer_count: 321 }] } };
+  const rutas = [];
+  const helix = { get: async ruta => { rutas.push(ruta); return respuesta; } };
+  try {
+    await c.vigilarEspectadores(helix, '42');
+    assert.equal(rutas[0], '/streams?user_id=42');
+    assert.equal(c.estado.espectadores, 321);
+    respuesta = { ok: true, cuerpo: { data: [] } };
+    await c.vigilarEspectadores(helix, '42');
+    assert.equal(c.estado.espectadores, null);
+    assert.equal(c.estado.maximo, 321);
+    // Un error de Helix no cambia nada.
+    respuesta = { ok: false, estado: 401, cuerpo: {} };
+    c.espectadores(10);
+    await c.vigilarEspectadores(helix, '42');
+    assert.equal(c.estado.espectadores, 10);
+  } finally { c.cerrar(); }
+});

@@ -169,3 +169,16 @@ test('puente: configuración y vuelta del inicio de sesión solo hacia localhost
   const w = await worker.fetch(new Request('https://puente.example/webhook', { method: 'POST', body: '{}', headers: { 'Kick-Event-Message-Timestamp': '2020-01-01T00:00:00Z' } }), env);
   assert.equal(w.status, 401);
 });
+
+test('espectadores de Kick: modo ventana (web) y modo oficial (API pública)', () => {
+  const { espectadoresKick, espectadoresOficial } = require('../lib/conectores/kick.js');
+  // Respuestas reales de /api/v2/channels/<canal>/livestream (19/11/2026).
+  assert.equal(espectadoresKick({ estado: 200, cuerpo: { data: { id: 138912115, viewers: 1921 } } }), 1921);
+  assert.equal(espectadoresKick({ estado: 200, cuerpo: { data: null } }), null);
+  assert.equal(espectadoresKick({ estado: 404, cuerpo: { error: 'Not Found' } }), null);
+  assert.equal(espectadoresKick({ estado: 429, cuerpo: null }), undefined);
+  assert.equal(espectadoresKick({ estado: 200, cuerpo: { otra: 1 } }), undefined);
+  assert.equal(espectadoresOficial({ data: [{ stream: { is_live: true, viewer_count: 87 } }] }), 87);
+  assert.equal(espectadoresOficial({ data: [{ stream: { is_live: false, viewer_count: 0 } }] }), null);
+  assert.equal(espectadoresOficial({ data: [] }), undefined);
+});

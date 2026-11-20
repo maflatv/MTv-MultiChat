@@ -160,7 +160,11 @@
       const est = conexiones.find(x => x.plataforma === c.id) || { estado: 'parado' };
       const estado = MC.el('span', `estado e-${est.estado}`, TEXTO_ESTADO[est.estado] || est.estado);
       if (est.detalle) estado.title = est.detalle;
-      cab.append(estado);
+      const vista = MC.el('span', 'espectadores');
+      vista.dataset.plataforma = c.id;
+      vista.title = 'Espectadores en directo';
+      vista.append(MC.el('i', 'ico ico-espectadores'), MC.el('b'));
+      cab.append(vista, estado);
 
       let ayuda = c.ayuda;
       if (c.modos) ayuda = cuerpoKick(c, cuenta, tarjeta);
@@ -177,7 +181,45 @@
       lista.append(tarjeta);
     }
     dibujarFiltrosPlataforma();
+    pintarEspectadores();
   }
+
+  // Espectadores por plataforma (en cada tarjeta) y el total en la cabecera. Se actualiza en su sitio, sin
+  // redibujar las tarjetas: TikTok manda la cifra cada pocos segundos y no debe borrar lo que se está escribiendo.
+  function pintarEspectadores() {
+    const con = conexiones.filter(x => Number.isFinite(x.espectadores));
+    for (const nodo of document.querySelectorAll('.cuenta .espectadores')) {
+      const est = con.find(x => x.plataforma === nodo.dataset.plataforma);
+      nodo.hidden = !est;
+      if (est) nodo.querySelector('b').textContent = est.espectadores.toLocaleString();
+    }
+    // Cabecera: logo de cada plataforma con su cifra y, si hay más de una, el total.
+    const chip = $('espectadores-total');
+    chip.hidden = !con.length;
+    const partes = con.map(x => {
+      const p = MC.el('span', 'espectadores');
+      p.append(MC.iconoPlataforma(x.plataforma), MC.el('b', null, x.espectadores.toLocaleString()));
+      return p;
+    });
+    if (con.length > 1) {
+      const total = MC.el('span', 'espectadores total');
+      total.append(MC.el('i', 'ico ico-espectadores'), MC.el('b', null, con.reduce((s, x) => s + x.espectadores, 0).toLocaleString()));
+      partes.push(total);
+    }
+    chip.replaceChildren(...partes);
+    chip.title = 'Espectadores en directo';
+  }
+  // URL del panel de espectadores (panel personalizado de OBS).
+  const urlEspectadores = `${window.location.origin}/espectadores`;
+  $('url-espectadores').textContent = urlEspectadores;
+  $('copiar-espectadores').onclick = async () => {
+    await navigator.clipboard.writeText(urlEspectadores);
+    $('copiar-espectadores').querySelector('span').textContent = '¡Copiada!';
+    setTimeout(() => { $('copiar-espectadores').querySelector('span').textContent = 'Copiar'; }, 1500);
+  };
+
+  // ¿Cambió algo más que los espectadores? Solo entonces hace falta redibujar las tarjetas.
+  const firmaConexiones = l => JSON.stringify(l.map(({ espectadores, maximo, ...resto }) => resto));
 
   // ---------- Chat ----------
 
@@ -388,7 +430,7 @@
         { k: 'tipos.regalo_subs', t: 'Subs regalados', tipo: 'si', probar: 'regalo_subs' },
         { k: 'tipos.donacion', t: 'Donaciones, bits, regalos y KICKs', tipo: 'si', probar: 'donacion' },
         { k: 'tipos.raid', t: 'Raids', tipo: 'si', probar: 'raid' },
-        { k: 'tipos.aviso', t: 'Canjes de puntos', tipo: 'si' },
+        { k: 'tipos.aviso', t: 'Canjes de puntos', tipo: 'si', probar: 'aviso' },
         { k: 'minimoUsd', t: 'Donación mínima', tipo: 'rango', min: 0, max: 50, paso: 1, mostrar: v => (v ? `${v} USD aprox.` : 'todas') },
         { titulo: 'Tamaño y posición', ayuda: 'Pon en OBS la fuente de navegador con este mismo tamaño (normalmente el de tu escena).' },
         { k: 'fuenteAncho', t: 'Ancho de la fuente en OBS', tipo: 'numero', min: 100, max: 3840, u: 'px' },
@@ -456,7 +498,7 @@
         { k: 'eventos.regalo_subs', t: 'Subs regalados', tipo: 'si', probar: 'regalo_subs' },
         { k: 'eventos.raid', t: 'Raids', tipo: 'si', probar: 'raid' },
         { k: 'eventos.follow', t: 'Follows', tipo: 'si', probar: 'follow' },
-        { k: 'eventos.aviso', t: 'Canjes de puntos', tipo: 'si' },
+        { k: 'eventos.aviso', t: 'Canjes de puntos', tipo: 'si', probar: 'aviso' },
         { k: 'leerMensajeEventos', t: 'Leer el mensaje que acompaña a donaciones y subs', tipo: 'si' },
         { k: 'minimoUsd', t: 'Donación mínima', tipo: 'rango', min: 0, max: 50, paso: 1, mostrar: v => (v ? `${v} USD aprox.` : 'todas') },
         { titulo: 'Filtros' },
@@ -1179,7 +1221,13 @@
       dibujarVerComo();
       if (verComo) refiltrar();
     },
-    conexiones(e) { conexiones = e.lista; if (config?.cuentas) dibujarCuentas(); },
+    conexiones(e) {
+      const antes = firmaConexiones(conexiones);
+      conexiones = e.lista;
+      if (!config?.cuentas) return;
+      if (firmaConexiones(conexiones) !== antes) dibujarCuentas();
+      else pintarEspectadores();
+    },
     // Tras iniciar o cerrar sesión con Kick en otra pestaña.
     cuentas() {
       fetch('/api/config').then(r => r.json()).then(c => {

@@ -78,7 +78,7 @@ test('servidor: prueba, destacar, ocultar y protección', async () => {
     await post(puerto, 'config', { cuentas: { kick: { modo: 'ventana', canal: 'mafla', activa: true } } });
     await esperar(50);
     const conexiones = recibidos.filter(e => e.ev === 'conexiones').at(-1).lista;
-    assert.deepEqual(conexiones.find(c => c.plataforma === 'kick'), { plataforma: 'kick', estado: 'error', detalle: 'Este modo solo funciona en la app de escritorio' });
+    assert.deepEqual(conexiones.find(c => c.plataforma === 'kick'), { plataforma: 'kick', estado: 'error', detalle: 'Este modo solo funciona en la app de escritorio', espectadores: null, maximo: null });
 
     // Alertas: página propia, configuración en el inicio y aviso a las páginas al cambiarla.
     assert.equal((await fetch(`http://localhost:${puerto}/alertas`)).status, 200);

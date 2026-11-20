@@ -34,6 +34,16 @@ aside { background: var(--panel); padding: 14px; overflow-y: auto; }
 .cuenta.inactiva { opacity: .5; }
 .cuenta-cab { display: flex; align-items: center; gap: 6px; font-size: 15px; }
 .cuenta-cab .estado { margin-left: auto; font-size: 11px; }
+/* Espectadores en directo: en cada tarjeta (antes del estado) y el total en la cabecera. */
+.espectadores { display: inline-flex; align-items: center; gap: 4px; font-variant-numeric: tabular-nums; }
+.espectadores .ico { width: 13px; height: 13px; }
+.espectadores b { font-weight: 600; }
+.cuenta-cab .espectadores { margin-left: auto; font-size: 12px; color: var(--texto, inherit); }
+.cuenta-cab .espectadores:not([hidden]) + .estado { margin-left: 8px; }
+#espectadores-total { display: inline-flex; align-items: center; gap: 10px; color: var(--texto, #fff); }
+#espectadores-total[hidden] { display: none; }
+#espectadores-total .plat svg { width: 13px; height: 13px; display: block; }
+#espectadores-total .total { color: var(--acento); padding-left: 10px; border-left: 1px solid var(--borde); }
 .estado::before { content: '●'; margin-right: 4px; }
 .e-conectado { color: var(--ok); }
 .e-conectando, .e-reconectando { color: var(--aviso); }

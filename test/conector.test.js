@@ -85,3 +85,30 @@ test('un corte durante "revisar" también deja hueco y olvida el aviso', () => {
     assert.equal(huecos.length, 1);
   } finally { c.detener(); }
 });
+
+test('espectadores: se guardan con el estado, el máximo dura el directo y se borran sin directo', () => {
+  const { c, estados } = preparar();
+  try {
+    c.cambiar('conectado', '@luna');
+    c.espectadores(120);
+    c.espectadores(120); // sin cambios: no se avisa otra vez
+    c.espectadores(90);
+    assert.deepEqual(estados.slice(-2).map(e => [e.espectadores, e.maximo]), [[120, 120], [90, 120]]);
+    // Un corte quita la cifra de ahora pero no el máximo del directo.
+    c.caida('Conexión cerrada');
+    assert.equal(c.estado.espectadores, null);
+    assert.equal(c.estado.maximo, 120);
+    c.cambiar('conectado', '@luna');
+    c.espectadores(150);
+    assert.equal(c.estado.maximo, 150);
+    // Cambiar el detalle no borra la cifra.
+    c.cambiar('conectado', '@luna · otra cosa');
+    assert.equal(c.estado.espectadores, 150);
+    // Sin directo: se olvida todo.
+    c.cambiar('esperando', 'Sin directo');
+    assert.equal(c.estado.espectadores, null);
+    assert.equal(c.estado.maximo, null);
+    c.espectadores(-3);
+    assert.equal(c.estado.espectadores, null);
+  } finally { c.detener(); }
+});

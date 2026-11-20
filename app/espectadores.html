@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>MTv MultiChat · Espectadores</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="/favicon.ico">
+<link rel="stylesheet" href="/mensajes.css">
+<link rel="stylesheet" href="/espectadores.css">
+</head>
+<body>
+<!-- Panel personalizado de OBS (Paneles > Paneles de navegador personalizados): http://127.0.0.1:7390/espectadores -->
+<div id="lista"></div>
+<div id="total" hidden>
+  <span class="plat ojo"></span>
+  <span class="v-nombre">Total</span>
+  <b class="v-cifra">0</b>
+  <span class="v-maximo"></span>
+</div>
+<p id="vacio" hidden>Sin plataformas activas</p>
+<p id="caida" hidden>Sin conexión con la app</p>
+<script src="/i18n.js"></script>
+<script src="/comun.js"></script>
+<script src="/espectadores.js"></script>
+</body>
+</html>

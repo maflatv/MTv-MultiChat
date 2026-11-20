@@ -151,3 +151,14 @@ test('importes en formatos de distintos países', () => {
   assert.equal(leerImporte('$5.00').usd, 5);
   assert.equal(leerImporte('nada'), null);
 });
+
+test('espectadores de YouTube: cifra, sin directo y respuestas sin cifra', () => {
+  const { espectadoresDe } = require('../lib/conectores/youtube.js');
+  const vista = r => ({ actions: [{ clickTrackingParams: 'x' }, { updateViewershipAction: { viewCount: { videoViewCountRenderer: r } } }] });
+  assert.equal(espectadoresDe(vista({ viewCount: { simpleText: '3,468 watching now' }, isLive: true, originalViewCount: '3468' })), 3468);
+  assert.equal(espectadoresDe(vista({ viewCount: { simpleText: '1,234 watching now' }, isLive: true })), 1234);
+  assert.equal(espectadoresDe(vista({ viewCount: { simpleText: '50K views' }, isLive: false })), null);
+  assert.equal(espectadoresDe(vista({ isLive: true, viewCount: { simpleText: 'watching now' } })), undefined);
+  assert.equal(espectadoresDe({ actions: [{ updateTitleAction: {} }] }), undefined);
+  assert.equal(espectadoresDe(null), undefined);
+});

@@ -7,11 +7,11 @@
   const EN = {
     // ---------- Cabecera, conexión y paneles ----------
     'Apoyar': 'Support', 'Apoya el proyecto en Ko-fi': 'Support the project on Ko-fi', 'Ayuda': 'Help', 'Acerca de MTv MultiChat': 'About MTv MultiChat',
-    'Vista del dock': 'Dock view', 'Conectando…': 'Connecting…', 'En marcha': 'Running', 'Sin conexión con la app': 'Not connected to the app',
+    'Vista del dock': 'Dock view', 'Espectadores en directo': 'Live viewers', 'Espectadores': 'Viewers', 'Total': 'Total', 'máx.': 'peak', 'Sin directo': 'Offline', 'Inicia sesión en el dock': 'Log in from the dock', 'Sin plataformas activas': 'No active platforms', 'En OBS: Paneles → Paneles de navegador personalizados → pega esta URL.': 'In OBS: Docks → Custom Browser Docks → paste this URL.', 'Conectando…': 'Connecting…', 'En marcha': 'Running', 'Sin conexión con la app': 'Not connected to the app',
     'Plataformas': 'Platforms', 'Probar': 'Test', 'Envía mensajes de prueba al dock y al overlay.': 'Send test messages to the dock and the overlay.',
     'Mensaje': 'Message', 'Donación': 'Donation', 'Suscripción': 'Subscription', 'Subs regalados': 'Gifted subs', 'Raid': 'Raid', 'Follow': 'Follow',
     'Envío automático': 'Automatic sending', 'Mensajes cada': 'Messages every', 'Eventos cada': 'Events every',
-    'Eventos: follow, suscripción, donación, subs regalados y raid, por turnos. 0 = solo mensajes.': 'Events: follow, subscription, donation, gifted subs and raid, in turn. 0 = messages only.',
+    'Eventos: follow, suscripción, donación, subs regalados, raid y canje, por turnos. 0 = solo mensajes.': 'Events: follow, subscription, donation, gifted subs, raid and redemption, in turn. 0 = messages only.',
     'Todo': 'All', 'Eventos': 'Events', 'Buscar…': 'Search…',
     // Perfiles de chat
     'Perfil': 'Profile', 'Principal': 'Main', 'Nombre del perfil': 'Profile name', 'Nuevo': 'New', 'Borrar': 'Delete', '¿Seguro?': 'Sure?',
@@ -202,7 +202,6 @@
     [/^Twitch retiró el permiso de (.+)$/, 'Twitch revoked the permission for $1'],
     [/^Sin (follows|canjes)( ni (follows|canjes))?: solo con tu propio canal \(o siendo moderador\)$/, (m, a, b, c) => `No ${[a, c].filter(Boolean).map(x => (x === 'canjes' ? 'redemptions' : x)).join(' or ')}: only on your own channel (or as a moderator)`],
     [/^Twitch: (.+)$/, (m, t) => `Twitch: ${traducir(t, 'en')}`],
-    [/^(.+) · (\d+) espectadores$/, '$1 · $2 viewers'],
     [/^Sesión iniciada como (.+)$/, 'Logged in as $1'],
     [/^(Twitch|YouTube|TikTok|Kick) envía datos que MTv MultiChat no entiende\. Puede que haya cambiado: busca una actualización\.$/, "$1 is sending data MTv MultiChat doesn't understand. It may have changed: look for an update."],
     [/^(Twitch|YouTube|TikTok|Kick) se reconectó tras (\d+) (s|min) sin conexión: puede faltar algún mensaje$/, '$1 reconnected after $2 $3 offline: some messages may be missing'],

@@ -306,7 +306,7 @@ function crearServidor({ datos = path.join(__dirname, 'userdata'), extras = {} }
     }
 
     // Archivos de la interfaz. /overlay y /dock sin extensión, para que la URL de OBS sea corta.
-    const nombre = { '/': '/dock.html', '/dock': '/dock.html', '/overlay': '/overlay.html', '/alertas': '/alertas.html' }[url.pathname] || url.pathname;
+    const nombre = { '/': '/dock.html', '/dock': '/dock.html', '/overlay': '/overlay.html', '/alertas': '/alertas.html', '/espectadores': '/espectadores.html' }[url.pathname] || url.pathname;
     const archivo = path.normalize(path.join(APP, nombre));
     if (!archivo.startsWith(APP + path.sep)) { res.writeHead(403); return res.end(); }
     fs.readFile(archivo, (err, buf) => {

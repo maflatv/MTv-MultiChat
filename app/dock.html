@@ -12,6 +12,7 @@
 <header>
   <h1><img src="/marca/mtv-logo-transparente-para-fondo-oscuro.svg" alt="MTv MultiChat" class="logo"></h1>
   <div class="cabecera-der">
+    <div id="espectadores-total" class="chip" hidden></div>
     <div id="servidor" class="chip">Conectando…</div>
     <button id="aviso-actualizacion" class="principal" hidden></button>
     <button id="saltar-voz" class="con-icono" title="Saltar lo que se está leyendo" hidden><i class="ico ico-voz-saltar"></i><span class="cuantos"></span></button>
@@ -28,6 +29,12 @@
   <aside id="cuentas">
     <h2>Plataformas</h2>
     <div id="lista-cuentas"></div>
+    <h2>Espectadores</h2>
+    <div class="url">
+      <code id="url-espectadores"></code>
+      <button id="copiar-espectadores" class="con-icono"><i class="ico ico-copiar"></i><span>Copiar</span></button>
+    </div>
+    <p class="ayuda">En OBS: Paneles → Paneles de navegador personalizados → pega esta URL.</p>
     <h2>Probar</h2>
     <p class="ayuda">Envía mensajes de prueba al dock y al overlay.</p>
     <div class="botones-prueba">
@@ -37,12 +44,13 @@
       <button data-prueba="regalo_subs">Subs regalados</button>
       <button data-prueba="raid">Raid</button>
       <button data-prueba="follow">Follow</button>
+      <button data-prueba="aviso">Canje</button>
     </div>
     <div class="prueba-auto">
       <label class="c-si"><input type="checkbox" id="auto-activo"> <span>Envío automático</span></label>
       <label class="auto-fila">Mensajes cada <input type="number" id="auto-mensajes" min="0.5" max="120" step="0.5" value="3"> s</label>
       <label class="auto-fila">Eventos cada <input type="number" id="auto-eventos" min="0" max="600" step="1" value="15"> s</label>
-      <p class="ayuda">Eventos: follow, suscripción, donación, subs regalados y raid, por turnos. 0 = solo mensajes.</p>
+      <p class="ayuda">Eventos: follow, suscripción, donación, subs regalados, raid y canje, por turnos. 0 = solo mensajes.</p>
     </div>
   </aside>
 
