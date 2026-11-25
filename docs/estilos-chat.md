@@ -25,7 +25,7 @@ Fecha: 11/11/2026.
 ## Decisiones en MTv MultiChat
 
 1. **Logotipo real de cada plataforma** delante de cada mensaje (Simple Icons, licencia CC0), en tres estilos: a color, como insignia (logo sobre su color) o blanco.
-2. **Insignias**: se usa la imagen que da la plataforma cuando existe: Twitch con sesión iniciada, miembro de YouTube y TikTok. Cuando no hay imagen, se dibuja una insignia propia con el color y el símbolo de esa plataforma. Cada plataforma solo muestra sus propios rangos.
+2. **Insignias originales**: se usa la imagen que trae el mensaje cuando existe (Twitch con sesión iniciada, miembro de YouTube, TikTok). Si no la trae, se usa la insignia original de la plataforma guardada en `app/iconos/insignias/`: Twitch (insignias globales de su CDN), Kick (SVG sacados de kick.com, con el regalo que cambia según las subs regaladas) y YouTube (llave azul de moderador y verificado gris; el propietario no lleva insignia, solo el nombre en amarillo). TikTok no tiene insignias fijas: solo si falta la imagen se dibuja una propia. Cada plataforma solo muestra sus propios rangos.
 3. **Tamaño y transparencia** sin CSS: tamaño de letra, transparencia del fondo, transparencia del chat entero (en porcentaje) y contorno del texto (ninguno / fino / grueso).
 4. **Dock**: tamaño de letra propio. En la app de escritorio, además, transparencia de la ventana y "siempre encima" para ver el chat sobre el juego.
 

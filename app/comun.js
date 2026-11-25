@@ -80,35 +80,42 @@ function iconoPlataforma(plataforma, estilo = 'color') {
 }
 
 // ---------- Insignias ----------
-// Cuando la plataforma no da la imagen de la insignia, se dibuja una propia con el código de color de cada
-// plataforma: espada de moderador en Twitch y Kick, llave azul en YouTube, diamante VIP rosa en Twitch, etc.
+// Cuando el mensaje no trae la imagen de la insignia, se usa la original de cada plataforma, guardada en
+// app/iconos/insignias/: Twitch (insignias globales de su CDN), Kick (los SVG de kick.com) y YouTube (sus
+// iconos de moderador y verificado; el propietario no lleva insignia, solo el nombre en amarillo).
+// TikTok no tiene insignias fijas (llegan como imagen con el mensaje): para ella queda un dibujo propio.
 const GLIFOS = {
-  camara: 'M3 7.5A1.5 1.5 0 0 1 4.5 6h9A1.5 1.5 0 0 1 15 7.5v2.2l4.4-2.6a.4.4 0 0 1 .6.35v9.1a.4.4 0 0 1-.6.35L15 14.3v2.2a1.5 1.5 0 0 1-1.5 1.5h-9A1.5 1.5 0 0 1 3 16.5z',
-  espada: 'M19.5 3.2 21 4.7l-9.6 9.6-1.5-1.5zM7.4 12.6l4 4-1.3 1.3-1.2-1.2-2.6 2.6a1 1 0 0 1-1.4-1.4l2.6-2.6-1.2-1.2z',
-  llave: 'M20.6 7.3a5 5 0 0 1-6.5 5.4l-6.8 6.8a1.9 1.9 0 0 1-2.7-2.7l6.8-6.8a5 5 0 0 1 5.4-6.5l-2.9 2.9.4 2.5 2.5.4z',
-  diamante: 'M7 4h10l4 5-9 11L3 9zm-1 5 6 7.3L18 9z',
-  estrella: 'M12 2.8l2.7 5.8 6.3.7-4.7 4.3 1.3 6.2L12 16.7l-5.6 3.1 1.3-6.2L3 9.3l6.3-.7z',
-  check: 'M9.2 15.6 5.4 11.8 4 13.2l5.2 5.2L20 7.6l-1.4-1.4z',
   escudo: 'M12 2.5 19.5 5v6c0 4.7-3.2 8.8-7.5 10.3C7.7 19.8 4.5 15.7 4.5 11V5z',
-  corona: 'M3.5 8l4.5 3.8L12 5.5l4 6.3 4.5-3.8-1.8 10.5H5.3z',
-  regalo: 'M4 9h16v3H4zm1 4h6v7H5zm8 0h6v7h-6zM11 9h2v11h-2zm1-1.2C10.2 5 7.2 4.3 7.2 6.3 7.2 7.6 9.4 8 12 8zm0 0c1.8-2.8 4.8-3.5 4.8-1.5 0 1.3-2.2 1.7-4.8 1.7z',
+  estrella: 'M12 2.8l2.7 5.8 6.3.7-4.7 4.3 1.3 6.2L12 16.7l-5.6 3.1 1.3-6.2L3 9.3l6.3-.7z',
 };
-// [glifo o texto, fondo, color del glifo, título]
+const TITULOS_ROL = { emisor: 'Streamer', mod: 'Moderador', vip: 'VIP', og: 'OG', fundador: 'Fundador', sub: 'Suscriptor', miembro: 'Miembro', regalador: 'Regala subs', verificado: 'Verificado' };
+// Kick cambia el regalo según cuántas suscripciones se han regalado.
+const REGALOS_KICK = [1, 5, 10, 25, 50, 100, 150, 200, 250, 300, 350, 400, 450, 500, 550, 600, 650, 700, 750, 800, 850, 900, 950, 1000, 2000, 3000, 4000, 5000];
 const INSIGNIAS = {
-  twitch: { emisor: ['camara', '#E91916', '#fff', 'Streamer'], mod: ['espada', '#00AD03', '#fff', 'Moderador'], vip: ['diamante', '#E005B9', '#fff', 'VIP'], fundador: [{ texto: '1', tam: 13 }, '#FF6D9A', '#fff', 'Fundador'], sub: ['estrella', '#9146FF', '#fff', 'Suscriptor'], verificado: ['check', '#9146FF', '#fff', 'Verificado'] },
-  youtube: { emisor: ['camara', '#FFD600', '#1b1b1b', 'Propietario'], mod: ['llave', '#5E84F1', '#fff', 'Moderador'], miembro: ['estrella', '#2BA640', '#fff', 'Miembro'], verificado: ['check', '#909090', '#fff', 'Verificado'] },
-  kick: { emisor: ['camara', '#53FC18', '#0b0e0f', 'Streamer'], mod: ['espada', '#00C7FF', '#0b0e0f', 'Moderador'], vip: ['diamante', '#FFC300', '#0b0e0f', 'VIP'], og: [{ texto: 'OG', tam: 9.5 }, '#00E1B0', '#0b0e0f', 'OG'], fundador: ['corona', '#FF8A00', '#0b0e0f', 'Fundador'], sub: ['estrella', '#53FC18', '#0b0e0f', 'Suscriptor'], verificado: ['check', '#1475E1', '#fff', 'Verificado'], regalador: ['regalo', '#B964FF', '#fff', 'Regala subs'] },
-  tiktok: { emisor: ['camara', '#FE2C55', '#fff', 'Anfitrión'], mod: ['escudo', '#FE2C55', '#fff', 'Moderador'], sub: ['estrella', '#25F4EE', '#0b0e0f', 'Suscriptor'] },
+  twitch: { emisor: 'twitch/emisor.png', mod: 'twitch/mod.png', vip: 'twitch/vip.png', fundador: 'twitch/fundador.png', sub: 'twitch/sub.png', verificado: 'twitch/verificado.png' },
+  youtube: { mod: 'youtube/mod.svg', verificado: 'youtube/verificado.svg' },
+  kick: { emisor: 'kick/emisor.svg', mod: 'kick/mod.svg', vip: 'kick/vip.svg', og: 'kick/og.svg', fundador: 'kick/fundador.svg', sub: 'kick/sub.svg', verificado: 'kick/verificado.svg', regalador: 'kick/regalador-1.svg' },
+  // [glifo, fondo, color del glifo]
+  tiktok: { mod: ['escudo', '#FE2C55', '#fff'], sub: ['estrella', '#25F4EE', '#0b0e0f'] },
 };
 // Orden en que se muestran (como las plataformas: primero el rango, luego la suscripción).
 const ORDEN_ROLES = ['emisor', 'mod', 'vip', 'og', 'fundador', 'sub', 'miembro', 'regalador', 'verificado'];
 
-function insigniaPropia(plataforma, rol) {
+function insigniaPropia(plataforma, rol, autor = {}) {
   // Cada plataforma solo muestra sus propias insignias (YouTube no tiene VIP, TikTok no tiene OG...).
-  const def = INSIGNIAS[plataforma]?.[rol] || (plataforma === 'prueba' ? INSIGNIAS.twitch[rol] : null);
+  let def = INSIGNIAS[plataforma]?.[rol] || (plataforma === 'prueba' ? INSIGNIAS.twitch[rol] : null);
   if (!def) return null;
-  const [glifo, fondo, tinta, titulo] = def;
-  const s = svg('0 0 24 24', { d: 'M5 1h14a4 4 0 0 1 4 4v14a4 4 0 0 1-4 4H5a4 4 0 0 1-4-4V5a4 4 0 0 1 4-4z', color: fondo }, typeof glifo === 'string' ? { d: GLIFOS[glifo], color: tinta } : { ...glifo, color: tinta });
+  const titulo = TITULOS_ROL[rol] || rol;
+  if (plataforma === 'kick' && rol === 'regalador') def = `kick/regalador-${[...REGALOS_KICK].reverse().find(n => n <= (autor.regalos || 1)) || 1}.svg`;
+  if (typeof def === 'string') {
+    const img = el('img', `insignia insignia-${rol}`);
+    img.src = `/iconos/insignias/${def}`;
+    img.alt = titulo;
+    img.title = titulo;
+    return img;
+  }
+  const [glifo, fondo, tinta] = def;
+  const s = svg('0 0 24 24', { d: 'M5 1h14a4 4 0 0 1 4 4v14a4 4 0 0 1-4 4H5a4 4 0 0 1-4-4V5a4 4 0 0 1 4-4z', color: fondo }, { d: GLIFOS[glifo], color: tinta });
   s.setAttribute('class', `insignia insignia-${rol}`);
   const t = document.createElementNS(SVG, 'title');
   t.textContent = titulo;
@@ -137,7 +144,7 @@ function insignias(m) {
     if (!r[rol] || cubiertos.has(rol)) continue;
     // El fundador ya es suscriptor: no se repite la estrella.
     if (rol === 'sub' && (r.fundador || cubiertos.has('fundador'))) continue;
-    const s = insigniaPropia(m.plataforma, rol);
+    const s = insigniaPropia(m.plataforma, rol, m.autor);
     if (s) lista.push(s);
   }
   return lista;
@@ -271,11 +278,15 @@ function dibujarMensaje(m, op = {}) {
   if (m.partes.length) {
     const texto = el('span', 'texto');
     for (const p of m.partes) {
-      if (p.t === 'emote' && /^https:\/\//.test(p.img || '')) {
+      // Emotes de las plataformas (https) y los emojis de TikTok que lleva la app (/iconos/).
+      if (p.t === 'emote' && /^(https:\/\/|\/iconos\/)/.test(p.img || '')) {
         const img = el('img', 'emote');
         img.src = p.img;
         img.alt = p.v;
         img.title = p.v;
+        img.referrerPolicy = 'no-referrer';
+        // Si la imagen no carga, se quita: nunca se muestra el nombre del emote en su lugar.
+        img.onerror = () => img.remove();
         // Emote superpuesto (7TV): va encima del anterior, en la misma pila.
         const ultimo = texto.hijosEmote?.at(-1);
         if (p.encima && ultimo) {

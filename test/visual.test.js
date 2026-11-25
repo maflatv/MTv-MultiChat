@@ -2,6 +2,7 @@
 const test = require('node:test');
 const assert = require('node:assert');
 const path = require('path');
+const fs = require('fs');
 
 class Nodo {
   constructor(tag) { this.tag = tag; this.hijos = []; this.attrs = {}; this.className = ''; this.dataset = {}; this.textContent = ''; this.style = { setProperty: (k, v) => { this.style[k] = v; } }; }
@@ -45,6 +46,15 @@ test('cada plataforma muestra solo sus insignias, y la imagen sustituye a la pro
   assert.equal(contar(mensaje('youtube', { roles: { miembro: true }, insignias: [{ img: 'https://y/m.png', tipo: 'miembro' }] })), 1);
   // Fundador ya implica suscriptor: no se repite la estrella.
   assert.equal(contar(mensaje('twitch', { roles: { fundador: true, sub: true } })), 1);
+});
+
+test('insignias originales de cada plataforma cuando el mensaje no trae imagen', () => {
+  const imgs = m => MC.dibujarMensaje(m, {}).buscar(n => n.tag === 'img' && n.className.includes('insignia')).map(n => n.src);
+  assert.deepEqual(imgs(mensaje('twitch', { roles: { mod: true, vip: true } })), ['/iconos/insignias/twitch/mod.png', '/iconos/insignias/twitch/vip.png']);
+  assert.deepEqual(imgs(mensaje('kick', { roles: { regalador: true }, regalos: 120 })), ['/iconos/insignias/kick/regalador-100.svg']);
+  // YouTube no pone insignia al propietario (solo el nombre en amarillo).
+  assert.deepEqual(imgs(mensaje('youtube', { roles: { emisor: true, mod: true } })), ['/iconos/insignias/youtube/mod.svg']);
+  for (const p of ['twitch/mod.png', 'kick/regalador-100.svg', 'youtube/mod.svg']) assert.ok(fs.existsSync(path.join(__dirname, '..', 'app', 'iconos', 'insignias', p)));
 });
 
 test('logotipo de la plataforma en sus tres estilos', () => {

@@ -42,7 +42,7 @@ test('trama del WebSocket comprimida con gzip → mensaje de chat con emote', ()
   assert.equal(m.autor.avatar, 'https://p16.tiktokcdn.com/avatar.webp');
   assert.equal(m.autor.roles.mod, true);
   assert.equal(m.autor.roles.sub, true);
-  assert.deepEqual(m.autor.insignias, [{ img: 'https://p16.tiktokcdn.com/fan.png', tipo: null, titulo: '' }]);
+  assert.deepEqual(m.autor.insignias, [{ img: 'https://p16.tiktokcdn.com/fan.png', tipo: 'mod', titulo: '' }]);
   assert.deepEqual(m.partes.map(p => p.t), ['texto', 'emote', 'texto']);
   assert.equal(m.partes[0].v, 'hola ');
   assert.equal(m.texto, 'hola  qué tal');
@@ -80,4 +80,30 @@ test('follow (y compartir se ignora), suscripción y espectadores', () => {
   assert.deepEqual(tiktok.interpretar('WebcastRoomUserSeqMessage', msg(campo(3, 1234))), { espectadores: 1234 });
   assert.equal(tiktok.interpretar('WebcastMemberMessage', msg(eventoBase(22, 1))), null);
   assert.equal(tiktok.interpretar('WebcastLikeMessage', msg(eventoBase(23, 1))), null);
+});
+
+// Comentario de chat con sus emotes (campo 13) → partes del mensaje.
+const partesDe = (comentario, emotes = []) => {
+  const chat = msg(eventoBase('7300000000000000009', 1794407000000), campo(2, usuarioPb(9, 'Eva', 'eva')), campo(3, comentario),
+    ...emotes.map(([pos, id]) => campo(13, msg(campo(1, pos), campo(2, msg(campo(1, id), campo(2, msg(campo(1, `https://p16.tiktokcdn.com/${id}.png`)))))))));
+  const [l] = tiktok.mensajesDeTrama(trama(respuesta(envoltorio('WebcastChatMessage', chat))));
+  return tiktok.interpretar(l.tipo, l.datos, 'eva').mensaje.partes;
+};
+
+test('emojis de TikTok LIVE: "[wow]" se cambia por su imagen y no se ven los corchetes', () => {
+  assert.deepEqual(partesDe('hola [wow][laughcry] jaja'), [
+    { t: 'texto', v: 'hola ' },
+    { t: 'emote', v: 'wow', img: '/iconos/emotes-tiktok/wow.png' },
+    { t: 'emote', v: 'laughcry', img: '/iconos/emotes-tiktok/laughcry.png' },
+    { t: 'texto', v: ' jaja' },
+  ]);
+  // Un texto entre corchetes que no es un emoji se deja como está.
+  assert.deepEqual(partesDe('[hola] amigos'), [{ t: 'texto', v: '[hola] amigos' }]);
+});
+
+test('emotes de suscriptor: van en el sitio de su marcador y el marcador no se muestra', () => {
+  const p = partesDe('buenas [sub_gato] y [sub_perro]', [[7, 'gato'], [20, 'perro']]);
+  assert.deepEqual(p.map(x => x.t), ['texto', 'emote', 'texto', 'emote']);
+  assert.ok(!p.some(x => x.t === 'texto' && /\[/.test(x.v)));
+  assert.equal(p[3].img, 'https://p16.tiktokcdn.com/perro.png');
 });
